@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 const navItems = [
   { label: "Dashboard", href: "/", icon: "📊" },
@@ -17,6 +18,14 @@ const adminItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <aside style={{
@@ -81,7 +90,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User block */}
-      <div style={{ margin: "0 12px 12px", padding: "10px 12px", background: "#2a2a4e", borderRadius: "8px", display: "flex", alignItems: "center", gap: "10px" }}>
+      <div style={{ margin: "0 12px 4px", padding: "10px 12px", background: "#2a2a4e", borderRadius: "8px", display: "flex", alignItems: "center", gap: "10px" }}>
         <div style={{ width: "32px", height: "32px", background: "#7b9fff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "13px", flexShrink: 0 }}>
           AL
         </div>
@@ -90,6 +99,9 @@ export default function Sidebar() {
           <div style={{ fontSize: "10px", color: "#888" }}>Directrice MANA MEDIA</div>
         </div>
       </div>
+      <button onClick={handleLogout} style={{ margin: "0 12px 12px", padding: "8px 12px", background: "transparent", border: "1px solid #2a2a4e", borderRadius: "8px", color: "#666", fontSize: "12px", cursor: "pointer", textAlign: "left" }}>
+        🚪 Déconnexion
+      </button>
     </aside>
   );
 }
