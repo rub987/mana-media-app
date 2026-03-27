@@ -49,9 +49,9 @@ export default async function Clients() {
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             <ZohoImportButton />
-            <button style={{ background: "#1a1a2e", color: "#fff", border: "none", padding: "9px 18px", borderRadius: "6px", fontSize: "13px", cursor: "pointer", fontWeight: 500 }}>
+            <a href="/nouveau-client" style={{ background: "#1a1a2e", color: "#fff", border: "none", padding: "9px 18px", borderRadius: "6px", fontSize: "13px", cursor: "pointer", fontWeight: 500, textDecoration: "none" }}>
               + Nouveau client
-            </button>
+            </a>
           </div>
         </div>
 
