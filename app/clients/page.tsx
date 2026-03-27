@@ -1,5 +1,6 @@
 import Sidebar from "../components/Sidebar";
 import { supabase } from "../lib/supabase";
+import ZohoImportButton from "../components/ZohoImportButton";
 
 const offreBadge: Record<string, { bg: string; color: string }> = {
   PREMIUM: { bg: "#f3e8ff", color: "#7c3aed" },
@@ -44,9 +45,12 @@ export default async function Clients() {
               {clients?.length ?? 0} clients · données en direct depuis Supabase
             </p>
           </div>
-          <button style={{ background: "#1a1a2e", color: "#fff", border: "none", padding: "9px 18px", borderRadius: "6px", fontSize: "13px", cursor: "pointer", fontWeight: 500 }}>
-            + Nouveau client
-          </button>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <ZohoImportButton />
+            <button style={{ background: "#1a1a2e", color: "#fff", border: "none", padding: "9px 18px", borderRadius: "6px", fontSize: "13px", cursor: "pointer", fontWeight: 500 }}>
+              + Nouveau client
+            </button>
+          </div>
         </div>
 
         <div style={{ padding: "24px 28px" }}>
