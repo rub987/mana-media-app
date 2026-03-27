@@ -2,6 +2,8 @@ import Sidebar from "../components/Sidebar";
 import { supabase } from "../lib/supabase";
 import ZohoImportButton from "../components/ZohoImportButton";
 
+export const revalidate = 0;
+
 const offreBadge: Record<string, { bg: string; color: string }> = {
   PREMIUM: { bg: "#f3e8ff", color: "#7c3aed" },
   PERFORMANCE: { bg: "#dbeafe", color: "#1d4ed8" },
