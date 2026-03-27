@@ -37,9 +37,9 @@ export async function GET() {
     return NextResponse.json({ error: "ZOHO non connecté" }, { status: 401 });
   }
 
-  // Récupérer les Comptes ZOHO avec les champs MANA MEDIA
+  // Récupérer uniquement les comptes avec une offre MANA MEDIA remplie
   const res = await fetch(
-    "https://www.zohoapis.com/crm/v2/Accounts?fields=Account_Name,Industry,Offre_REDSOYU_R_GIE_PUB,Budget_m_dia_mensuel,Statut_campagne,Canaux_actifs,ROI_estim&per_page=50",
+    "https://www.zohoapis.com/crm/v2/Accounts/search?criteria=(Offre_REDSOYU_R_GIE_PUB:equals:START)OR(Offre_REDSOYU_R_GIE_PUB:equals:PERFORMANCE)OR(Offre_REDSOYU_R_GIE_PUB:equals:PREMIUM)&fields=Account_Name,Industry,Offre_REDSOYU_R_GIE_PUB,Budget_m_dia_mensuel,Statut_campagne,Canaux_actifs,ROI_estim&per_page=50",
     {
       headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
     }
