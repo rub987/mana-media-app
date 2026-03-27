@@ -39,7 +39,7 @@ export async function GET() {
 
   // Récupérer les Comptes ZOHO avec les champs MANA MEDIA
   const res = await fetch(
-    "https://www.zohoapis.com/crm/v2/Accounts?fields=Account_Name,Industry,Phone,Website,Offre_REDSOYU_REGIE_PUB,Budget_media_mensuel,Statut_campagne,Canaux_actifs,ROI_estime&per_page=50",
+    "https://www.zohoapis.com/crm/v2/Accounts?fields=Account_Name,Industry,Offre_REDSOYU_R_GIE_PUB,Budget_m_dia_mensuel,Statut_campagne,Canaux_actifs,ROI_estim&per_page=50",
     {
       headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
     }
@@ -51,15 +51,15 @@ export async function GET() {
     return NextResponse.json({ clients: [] });
   }
 
-  const clients = data.data.map((account: Record<string, string>) => ({
+  const clients = data.data.map((account: Record<string, unknown>) => ({
     zoho_id: account.id,
     nom: account.Account_Name,
     secteur: account.Industry ?? "",
-    offre: account.Offre_REDSOYU_REGIE_PUB ?? "",
-    budget_mensuel: account.Budget_media_mensuel ?? 0,
+    offre: account.Offre_REDSOYU_R_GIE_PUB ?? "",
+    budget_mensuel: account.Budget_m_dia_mensuel ?? 0,
     statut: account.Statut_campagne ?? "Active",
     canaux: account.Canaux_actifs ?? [],
-    roi: account.ROI_estime ?? "—",
+    roi: account.ROI_estim ?? "—",
   }));
 
   return NextResponse.json({ clients });
