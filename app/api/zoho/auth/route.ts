@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const params = new URLSearchParams({
-    scope: "ZohoCRM.modules.Accounts.READ,ZohoCRM.modules.Contacts.READ",
+    scope: "ZohoCRM.modules.Accounts.ALL,ZohoCRM.modules.Contacts.READ",
     client_id: process.env.ZOHO_CLIENT_ID!,
     response_type: "code",
     access_type: "offline",
