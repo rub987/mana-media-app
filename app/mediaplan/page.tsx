@@ -1,48 +1,108 @@
 import Sidebar from "../components/Sidebar";
+import { createClient } from "@/utils/supabase/server";
 
-const semaines = ["S1\n7 avr", "S2\n14 avr", "S3\n21 avr", "S4\n28 avr", "S5\n5 mai", "S6\n12 mai", "S7\n19 mai", "S8\n26 mai"];
+export const revalidate = 0;
 
-const plans = [
-  {
-    client: "HÔTEL TAHITI NUI",
-    offre: "PREMIUM",
-    offreBg: "#f3e8ff",
-    offreColor: "#7c3aed",
-    lignes: [
-      { canal: "🎙 Radio", budget: "320k F", actif: [true, true, true, false, true, true, false, false], couleur: "#fbbf24" },
-      { canal: "💻 Digital", budget: "280k F", actif: [true, true, true, true, true, true, true, true], couleur: "#7b9fff" },
-      { canal: "📰 Print", budget: "150k F", actif: [false, true, false, false, false, true, false, false], couleur: "#34d399" },
-    ],
-  },
-  {
-    client: "CARREFOUR ARUE",
-    offre: "PERFORMANCE",
-    offreBg: "#dbeafe",
-    offreColor: "#1d4ed8",
-    lignes: [
-      { canal: "🎙 Radio", budget: "160k F", actif: [false, true, true, true, false, false, true, true], couleur: "#fbbf24" },
-      { canal: "📋 Affichage", budget: "80k F", actif: [true, true, false, false, true, true, false, false], couleur: "#f87171" },
-    ],
-  },
-  {
-    client: "BOUTIQUE FLEURS MOOREA",
-    offre: "START",
-    offreBg: "#f3f4f6",
-    offreColor: "#6b7280",
-    lignes: [
-      { canal: "🎙 Radio", budget: "25k F", actif: [false, false, true, true, false, false, false, false], couleur: "#fbbf24" },
-    ],
-  },
-];
+const canalColor: Record<string, string> = {
+  Radio: "#fbbf24",
+  Digital: "#7b9fff",
+  Print: "#34d399",
+  Affichage: "#f87171",
+  TV: "#a78bfa",
+};
 
-const legende = [
-  { label: "Radio", color: "#fbbf24" },
-  { label: "Digital", color: "#7b9fff" },
-  { label: "Print", color: "#34d399" },
-  { label: "Affichage", color: "#f87171" },
-];
+const canalEmoji: Record<string, string> = {
+  Radio: "🎙",
+  Digital: "💻",
+  Print: "📰",
+  Affichage: "📋",
+  TV: "📺",
+};
 
-export default function MediaPlan() {
+const offreBadge: Record<string, { bg: string; color: string }> = {
+  PREMIUM: { bg: "#f3e8ff", color: "#7c3aed" },
+  PERFORMANCE: { bg: "#dbeafe", color: "#1d4ed8" },
+  START: { bg: "#f3f4f6", color: "#6b7280" },
+};
+
+type PlanWithClient = {
+  id: string;
+  canal: string;
+  budget: number;
+  date_debut: string;
+  date_fin: string;
+  statut: string;
+  notes: string;
+  client_id: string;
+  clients: { nom: string; offre: string };
+};
+
+function getMondayOf(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function isPlanActiveInWeek(plan: PlanWithClient, weekStart: Date, weekEnd: Date): boolean {
+  const start = new Date(plan.date_debut);
+  const end = new Date(plan.date_fin);
+  return start <= weekEnd && end >= weekStart;
+}
+
+export default async function MediaPlan() {
+  const supabase = await createClient();
+
+  const { data: plans } = await supabase
+    .from("plans_media")
+    .select("*, clients(nom, offre)")
+    .order("date_debut", { ascending: true });
+
+  const allPlans = (plans || []) as PlanWithClient[];
+
+  // Grid start: Monday of the earliest plan, or current Monday
+  const earliest = allPlans.length > 0 ? new Date(allPlans[0].date_debut) : new Date();
+  const gridStart = getMondayOf(earliest);
+
+  const NUM_WEEKS = 10;
+  const weeks = Array.from({ length: NUM_WEEKS }, (_, i) => {
+    const start = addDays(gridStart, i * 7);
+    const end = addDays(start, 6);
+    return {
+      start,
+      end,
+      label: `S${i + 1}`,
+      date: start.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }),
+    };
+  });
+
+  // Group plans by client
+  const byClient = new Map<string, { nom: string; offre: string; plans: PlanWithClient[] }>();
+  for (const plan of allPlans) {
+    if (!byClient.has(plan.client_id)) {
+      byClient.set(plan.client_id, { nom: plan.clients.nom, offre: plan.clients.offre, plans: [] });
+    }
+    byClient.get(plan.client_id)!.plans.push(plan);
+  }
+
+  const clients = Array.from(byClient.values());
+
+  const legende = Object.entries(canalColor).map(([label, color]) => ({ label, color }));
+
+  const moisLabel = (() => {
+    const debut = gridStart.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    const fin = addDays(gridStart, (NUM_WEEKS - 1) * 7 + 6).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    return debut === fin ? debut : `${debut} — ${fin}`;
+  })();
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar />
@@ -52,18 +112,7 @@ export default function MediaPlan() {
         <div style={{ background: "#fff", padding: "20px 28px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Plans médias</h1>
-            <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Vue planning — T2 2026</p>
-          </div>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <select style={{ padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "13px", color: "#374151" }}>
-              <option>Tous les clients</option>
-              <option>Hôtel Tahiti Nui</option>
-              <option>Carrefour Arue</option>
-              <option>Boutique Fleurs Moorea</option>
-            </select>
-            <button style={{ background: "#1a1a2e", color: "#fff", border: "none", padding: "9px 18px", borderRadius: "6px", fontSize: "13px", cursor: "pointer", fontWeight: 500 }}>
-              + Nouveau plan
-            </button>
+            <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Vue Gantt — {allPlans.length} plan{allPlans.length > 1 ? "s" : ""} actif{allPlans.length > 1 ? "s" : ""}</p>
           </div>
         </div>
 
@@ -79,96 +128,100 @@ export default function MediaPlan() {
             ))}
           </div>
 
-          {/* Tableau Gantt */}
+          {/* Gantt */}
           <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
-            <div style={{ padding: "16px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Calendrier — Avril à Mai 2026</h3>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "12px", cursor: "pointer", background: "#fff" }}>◀ Préc.</button>
-                <button style={{ padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "12px", cursor: "pointer", background: "#fff" }}>Suiv. ▶</button>
-              </div>
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #f0f0f0" }}>
+              <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Calendrier — {moisLabel}</h3>
             </div>
 
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", minWidth: "700px" }}>
-                <thead>
-                  <tr style={{ background: "#fafafa" }}>
-                    <th style={{ textAlign: "left", padding: "10px 16px", width: "180px", color: "#888", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #f0f0f0" }}>
-                      Client / Canal
-                    </th>
-                    {semaines.map((s) => (
-                      <th key={s} style={{ textAlign: "center", padding: "10px 6px", color: "#888", fontSize: "11px", borderBottom: "1px solid #f0f0f0", minWidth: "70px" }}>
-                        {s.split("\n")[0]}<br />
-                        <span style={{ fontSize: "10px", color: "#bbb" }}>{s.split("\n")[1]}</span>
+            {allPlans.length === 0 ? (
+              <div style={{ padding: "48px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>
+                Aucun plan média. Créez des plans depuis la fiche client.
+              </div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", minWidth: "800px" }}>
+                  <thead>
+                    <tr style={{ background: "#fafafa" }}>
+                      <th style={{ textAlign: "left", padding: "10px 16px", width: "200px", color: "#888", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #f0f0f0" }}>
+                        Client / Canal
                       </th>
-                    ))}
-                    <th style={{ textAlign: "right", padding: "10px 16px", color: "#888", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #f0f0f0" }}>
-                      Budget
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {plans.map((plan) => (
-                    <>
-                      {/* Ligne client */}
-                      <tr key={plan.client} style={{ background: "#f8f9fc" }}>
-                        <td colSpan={10} style={{ padding: "8px 16px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span style={{ fontSize: "12px", fontWeight: 700, color: "#1a1a2e" }}>{plan.client}</span>
-                            <span style={{ display: "inline-block", padding: "2px 7px", borderRadius: "10px", fontSize: "10px", fontWeight: 600, background: plan.offreBg, color: plan.offreColor }}>
-                              {plan.offre}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-
-                      {/* Lignes canaux */}
-                      {plan.lignes.map((ligne) => (
-                        <tr key={`${plan.client}-${ligne.canal}`} style={{ borderBottom: "1px solid #f5f5f5" }}>
-                          <td style={{ padding: "10px 16px 10px 28px", color: "#555", fontSize: "12px" }}>{ligne.canal}</td>
-                          {ligne.actif.map((actif, i) => (
-                            <td key={i} style={{ padding: "8px 6px", textAlign: "center" }}>
-                              {actif && (
-                                <div style={{ height: "20px", borderRadius: "4px", background: ligne.couleur, opacity: 0.85 }} />
-                              )}
-                            </td>
-                          ))}
-                          <td style={{ padding: "10px 16px", textAlign: "right", color: "#555", fontSize: "12px", fontWeight: 500 }}>
-                            {ligne.budget}
+                      {weeks.map((w, i) => (
+                        <th key={i} style={{ textAlign: "center", padding: "10px 4px", color: "#888", fontSize: "11px", borderBottom: "1px solid #f0f0f0", minWidth: "64px" }}>
+                          {w.label}<br />
+                          <span style={{ fontSize: "10px", color: "#bbb" }}>{w.date}</span>
+                        </th>
+                      ))}
+                      <th style={{ textAlign: "right", padding: "10px 16px", color: "#888", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #f0f0f0" }}>
+                        Budget
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {clients.map((client) => (
+                      <>
+                        {/* Ligne client */}
+                        <tr key={client.nom} style={{ background: "#f8f9fc" }}>
+                          <td colSpan={NUM_WEEKS + 2} style={{ padding: "8px 16px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span style={{ fontSize: "12px", fontWeight: 700, color: "#1a1a2e" }}>{client.nom}</span>
+                              <span style={{ display: "inline-block", padding: "2px 7px", borderRadius: "10px", fontSize: "10px", fontWeight: 600, background: offreBadge[client.offre]?.bg, color: offreBadge[client.offre]?.color }}>
+                                {client.offre}
+                              </span>
+                            </div>
                           </td>
                         </tr>
-                      ))}
-                    </>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+
+                        {/* Lignes plans */}
+                        {client.plans.map((plan) => (
+                          <tr key={plan.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
+                            <td style={{ padding: "10px 16px 10px 28px", color: "#555", fontSize: "12px" }}>
+                              {canalEmoji[plan.canal] || "•"} {plan.canal}
+                            </td>
+                            {weeks.map((w, i) => (
+                              <td key={i} style={{ padding: "7px 4px", textAlign: "center" }}>
+                                {isPlanActiveInWeek(plan, w.start, w.end) && (
+                                  <div style={{ height: "18px", borderRadius: "4px", background: canalColor[plan.canal] || "#aaa", opacity: 0.85 }} />
+                                )}
+                              </td>
+                            ))}
+                            <td style={{ padding: "10px 16px", textAlign: "right", color: "#555", fontSize: "12px", fontWeight: 500 }}>
+                              {plan.budget ? `${Math.round(plan.budget / 1000)}k F` : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Résumé budgets */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginTop: "16px" }}>
-            {plans.map((plan) => {
-              const total = plan.lignes.reduce((acc, l) => {
-                const val = parseInt(l.budget.replace(/[^0-9]/g, "")) * (l.budget.includes("k") ? 1000 : 1);
-                return acc + val;
-              }, 0);
-              const jours = plan.lignes.reduce((acc, l) => acc + l.actif.filter(Boolean).length, 0);
-              return (
-                <div key={plan.client} style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "16px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
-                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#1a1a2e" }}>{plan.client}</div>
-                    <span style={{ display: "inline-block", padding: "2px 7px", borderRadius: "10px", fontSize: "10px", fontWeight: 600, background: plan.offreBg, color: plan.offreColor }}>
-                      {plan.offre}
-                    </span>
+          {clients.length > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "16px", marginTop: "16px" }}>
+              {clients.map((client) => {
+                const total = client.plans.reduce((acc, p) => acc + (p.budget || 0), 0);
+                return (
+                  <div key={client.nom} style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
+                      <div style={{ fontSize: "12px", fontWeight: 600, color: "#1a1a2e" }}>{client.nom}</div>
+                      <span style={{ display: "inline-block", padding: "2px 7px", borderRadius: "10px", fontSize: "10px", fontWeight: 600, background: offreBadge[client.offre]?.bg, color: offreBadge[client.offre]?.color }}>
+                        {client.offre}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#1a1a2e", marginBottom: "4px" }}>
+                      {Math.round(total / 1000)}k F
+                    </div>
+                    <div style={{ fontSize: "11px", color: "#888" }}>
+                      {client.plans.length} plan{client.plans.length > 1 ? "s" : ""} · {[...new Set(client.plans.map(p => p.canal))].join(", ")}
+                    </div>
                   </div>
-                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#1a1a2e", marginBottom: "4px" }}>
-                    {(total / 1000).toFixed(0)}k F
-                  </div>
-                  <div style={{ fontSize: "11px", color: "#888" }}>{plan.lignes.length} canal{plan.lignes.length > 1 ? "x" : ""} · {jours} semaines actives</div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
         </div>
       </main>
