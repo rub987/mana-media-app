@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Sidebar from "../../../components/Sidebar";
 import { createClient } from "@/utils/supabase/client";
 
+
 const canaux_options = ["Radio", "Digital", "Print", "Affichage", "TV"];
 
 export default function ModifierClient() {
@@ -65,20 +66,15 @@ export default function ModifierClient() {
     setSaving(true);
     setError("");
 
-    const { error } = await supabase.from("clients").update({
-      nom: form.nom,
-      secteur: form.secteur,
-      offre: form.offre,
-      budget_mensuel: parseInt(form.budget_mensuel) || 0,
-      contrat: form.contrat,
-      canaux: form.canaux,
-      statut: form.statut,
-      roi: form.roi,
-      progression: parseInt(form.progression) || 0,
-    }).eq("id", id);
+    const res = await fetch("/api/clients/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...form }),
+    });
 
-    if (error) {
-      setError(error.message);
+    const data = await res.json();
+    if (data.error) {
+      setError(data.error);
       setSaving(false);
     } else {
       router.push(`/clients/${id}`);

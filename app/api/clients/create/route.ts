@@ -61,7 +61,6 @@ export async function POST(request: Request) {
   // 2. Créer dans ZOHO CRM
   const accessToken = await getZohoAccessToken(supabase);
 
-  let zohoResult = null;
   if (accessToken) {
     const zohoRes = await fetch("https://www.zohoapis.com/crm/v2/Accounts", {
       method: "POST",
@@ -81,7 +80,11 @@ export async function POST(request: Request) {
         }],
       }),
     });
-    zohoResult = await zohoRes.json();
+    const zohoData = await zohoRes.json();
+    const zohoId = zohoData?.data?.[0]?.details?.id;
+    if (zohoId) {
+      await supabase.from("clients").update({ zoho_id: zohoId }).eq("id", newClient.id);
+    }
   }
 
   return NextResponse.json({ success: true, client: newClient });

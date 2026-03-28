@@ -15,7 +15,6 @@ export async function POST(request: Request) {
       .single();
 
     if (!existing) {
-      // Générer les initiales
       const mots = client.nom.trim().split(" ");
       const initiales = mots.length >= 2
         ? (mots[0][0] + mots[1][0]).toUpperCase()
@@ -32,8 +31,12 @@ export async function POST(request: Request) {
         contrat: "12 mois",
         initiales,
         progression: 0,
+        zoho_id: client.zoho_id || null,
       });
       imported++;
+    } else if (client.zoho_id) {
+      // Mettre à jour le zoho_id si manquant
+      await supabase.from("clients").update({ zoho_id: client.zoho_id }).eq("id", existing.id).is("zoho_id", null);
     }
   }
 
