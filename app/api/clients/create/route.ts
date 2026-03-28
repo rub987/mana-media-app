@@ -84,5 +84,5 @@ export async function POST(request: Request) {
     zohoResult = await zohoRes.json();
   }
 
-  return NextResponse.json({ success: true, client: newClient, zoho: zohoResult });
+  return NextResponse.json({ success: true, client: newClient });
 }
