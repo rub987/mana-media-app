@@ -56,9 +56,9 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
             </div>
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
-            <button style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "13px", cursor: "pointer", background: "#fff" }}>
+            <Link href={`/clients/${id}/modifier`} style={{ padding: "8px 16px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "13px", cursor: "pointer", background: "#fff", textDecoration: "none", color: "#374151" }}>
               Modifier
-            </button>
+            </Link>
             <button style={{ padding: "8px 16px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: "6px", fontSize: "13px", cursor: "pointer", fontWeight: 500 }}>
               + Nouveau plan
             </button>
