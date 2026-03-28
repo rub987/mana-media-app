@@ -2,6 +2,7 @@ import Sidebar from "../../components/Sidebar";
 import { createClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import PlanMediaSection from "../../components/PlanMediaSection";
 
 export const revalidate = 0;
 
@@ -26,6 +27,12 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
     .select("*")
     .eq("id", id)
     .single();
+
+  const { data: plans } = await supabase
+    .from("plans_media")
+    .select("*")
+    .eq("client_id", id)
+    .order("date_debut", { ascending: true });
 
   if (!client) notFound();
 
@@ -144,18 +151,8 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
             </div>
           </div>
 
-          {/* Plan média placeholder */}
-          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "16px" }}>
-            <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Plan média</span>
-              <button style={{ padding: "6px 14px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: "6px", fontSize: "12px", cursor: "pointer" }}>
-                + Créer un plan
-              </button>
-            </div>
-            <div style={{ padding: "32px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>
-              Aucun plan média pour ce client. Clique sur "Créer un plan" pour démarrer.
-            </div>
-          </div>
+          {/* Plan média */}
+          <PlanMediaSection clientId={id} plans={plans || []} />
 
           {/* Reporting placeholder */}
           <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
