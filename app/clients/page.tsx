@@ -61,7 +61,7 @@ export default async function Clients() {
               const avatar = avatarColors[c.initiales] ?? { bg: "#e8ecff", color: "#4f6ef5" };
               const offre = c.offre as string;
               return (
-                <div key={c.id} style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "18px", cursor: "pointer" }}>
+                <a key={c.id} href={`/clients/${c.id}`} style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "18px", cursor: "pointer", textDecoration: "none", display: "block" }}>
                   {/* En-tête */}
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
                     <div style={{ width: "40px", height: "40px", borderRadius: "8px", background: avatar.bg, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "14px", color: avatar.color, flexShrink: 0 }}>
@@ -103,7 +103,7 @@ export default async function Clients() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </a>
               );
             })}
 
