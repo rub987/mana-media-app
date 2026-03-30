@@ -1,4 +1,4 @@
-import Sidebar from "./components/Sidebar";
+import Sidebar from "../components/Sidebar";
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
 
