@@ -82,7 +82,7 @@ export default function Sidebar() {
           MANA MEDIA
         </div>
         <div style={{ fontSize: "10px", color: "#888", letterSpacing: "2px", marginTop: "2px" }}>
-          PILOTAGE MÉDIA
+          PILOTAGE REDSOYU
         </div>
       </div>
 
