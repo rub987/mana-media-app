@@ -1,237 +1,213 @@
-import Sidebar from "./components/Sidebar";
-import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
 
-export const revalidate = 0;
+const offres = [
+  {
+    nom: "START",
+    prix: "20 000",
+    badgeBg: "#f3f4f6",
+    badgeColor: "#6b7280",
+    cible: "Petits commerces & budgets limités",
+    dark: false,
+    populaire: false,
+    inclus: [
+      "Diagnostic rapide (1 échange)",
+      "Plan média simplifié (2 canaux)",
+      "Accès tarifs négociés",
+      "Suivi mensuel léger",
+    ],
+  },
+  {
+    nom: "PERFORMANCE",
+    prix: "80 000 – 120 000",
+    badgeBg: "#dbeafe",
+    badgeColor: "#1d4ed8",
+    cible: "PME, tourisme & enseignes",
+    dark: true,
+    populaire: true,
+    inclus: [
+      "Stratégie média complète",
+      "Gestion multi-supports",
+      "Optimisation mensuelle",
+      "Reporting clair & régulier",
+      "Réservation & coordination médias",
+    ],
+  },
+  {
+    nom: "PREMIUM",
+    prix: "150 000+",
+    badgeBg: "#f3e8ff",
+    badgeColor: "#7c3aed",
+    cible: "Gros budgets & institutionnels",
+    dark: false,
+    populaire: false,
+    inclus: [
+      "Stratégie annuelle complète",
+      "Achat média optimisé",
+      "Négociation exclusive médias",
+      "Dashboard + analyse ROI",
+      "Directeur marketing externalisé",
+    ],
+  },
+];
 
-const offreBadge: Record<string, { bg: string; color: string }> = {
-  PREMIUM: { bg: "#f3e8ff", color: "#7c3aed" },
-  PERFORMANCE: { bg: "#dbeafe", color: "#1d4ed8" },
-  START: { bg: "#f3f4f6", color: "#6b7280" },
-};
+const avantages = [
+  { icon: "🎯", titre: "Expertise locale", desc: "Connaissance approfondie des médias polynésiens — Radio 1, TNTV, La Dépêche, affichage urbain." },
+  { icon: "📊", titre: "Pilotage en temps réel", desc: "Tableau de bord dédié pour suivre vos campagnes, budgets et ROI à tout moment." },
+  { icon: "🤝", titre: "Interlocuteur unique", desc: "Un seul contact pour tous vos supports. Vous gagnez du temps, nous gérons la complexité." },
+  { icon: "📈", titre: "Résultats mesurés", desc: "Chaque campagne est suivie et optimisée. Nous vous montrons ce qui fonctionne." },
+];
 
-const statutBadge: Record<string, { bg: string; color: string }> = {
-  "Active": { bg: "#dcfce7", color: "#16a34a" },
-  "En pause": { bg: "#fff7ed", color: "#c2410c" },
-  "Terminée": { bg: "#f3f4f6", color: "#6b7280" },
-};
+const canaux = ["Radio", "Digital", "Print", "Affichage", "Télévision"];
 
-const planStatutColor: Record<string, { bg: string; color: string }> = {
-  "Planifié": { bg: "#dbeafe", color: "#1d4ed8" },
-  "En cours": { bg: "#dcfce7", color: "#16a34a" },
-  "Terminé": { bg: "#f3f4f6", color: "#6b7280" },
-  "Annulé": { bg: "#fee2e2", color: "#dc2626" },
-};
-
-const canalColor: Record<string, string> = {
-  Radio: "#fbbf24",
-  Digital: "#7b9fff",
-  Print: "#34d399",
-  Affichage: "#f87171",
-  TV: "#a78bfa",
-};
-
-function fmt(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M F`;
-  if (n >= 1_000) return `${Math.round(n / 1000)}k F`;
-  return `${n} F`;
-}
-
-function formatDate(d: string) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-}
-
-export default async function Dashboard() {
-  const supabase = await createClient();
-
-  const [{ data: clients }, { data: plans }] = await Promise.all([
-    supabase.from("clients").select("*").order("created_at", { ascending: false }),
-    supabase.from("plans_media").select("*, clients(nom)").order("date_debut", { ascending: false }),
-  ]);
-
-  const allClients = clients ?? [];
-  const allPlans = (plans ?? []) as any[];
-
-  // --- KPIs ---
-  const clientsActifs = allClients.filter((c) => c.statut === "Active").length;
-  const budgetMensuel = allClients
-    .filter((c) => c.statut === "Active")
-    .reduce((acc, c) => acc + (c.budget_mensuel || 0), 0);
-  const plansEnCours = allPlans.filter((p) => p.statut === "En cours").length;
-  const budgetPlans = allPlans.reduce((acc, p) => acc + (p.budget || 0), 0);
-
-  // --- Plans récents (5 derniers, triés par date_debut desc) ---
-  const plansRecents = allPlans.slice(0, 5);
-
-  // --- Répartition offres ---
-  const offres = (["PREMIUM", "PERFORMANCE", "START"] as const).map((offre) => ({
-    offre,
-    count: allClients.filter((c) => c.offre === offre).length,
-  }));
-  const maxOffre = Math.max(...offres.map((o) => o.count), 1);
-
-  const kpis = [
-    { label: "Clients actifs", value: String(clientsActifs), sub: `${allClients.length} clients au total`, color: "#7b9fff" },
-    { label: "Budget géré / mois", value: fmt(budgetMensuel), sub: "Clients actifs uniquement", color: "#34d399" },
-    { label: "Plans en cours", value: String(plansEnCours), sub: `${allPlans.length} plans au total`, color: "#fbbf24" },
-    { label: "Budget plans total", value: fmt(budgetPlans), sub: "Tous plans confondus", color: "#a78bfa" },
-  ];
-
+export default function Home() {
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar />
+    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", background: "#fff", color: "#1a1a2e" }}>
 
-      <main style={{ flex: 1, background: "#f5f6fa", overflowY: "auto" }}>
-        {/* Header */}
-        <div style={{ background: "#fff", padding: "20px 28px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Tableau de bord</h1>
-            <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Vue globale — données en direct</p>
-          </div>
-          <Link href="/nouveau-client" style={{ background: "#1a1a2e", color: "#fff", padding: "9px 18px", borderRadius: "6px", fontSize: "13px", fontWeight: 500, textDecoration: "none" }}>
-            + Nouveau client
+      {/* NAV */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid #e5e7eb", padding: "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: "64px" }}>
+        <div>
+          <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "1px", color: "#1a1a2e" }}>MANA MEDIA</span>
+          <span style={{ fontSize: "11px", color: "#888", letterSpacing: "2px", marginLeft: "10px" }}>PILOTAGE REDSOYU</span>
+        </div>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <a href="#offres" style={{ padding: "8px 14px", fontSize: "13px", color: "#555", textDecoration: "none" }}>Offres</a>
+          <a href="#contact" style={{ padding: "8px 14px", fontSize: "13px", color: "#555", textDecoration: "none" }}>Contact</a>
+          <Link href="/login" style={{ padding: "8px 18px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
+            Accès client →
           </Link>
         </div>
+      </nav>
 
-        <div style={{ padding: "24px 28px" }}>
+      {/* HERO */}
+      <section style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #2a2a4e 60%, #1a1a2e 100%)", padding: "96px 48px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 20% 50%, rgba(123,159,255,0.15) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(167,139,250,0.1) 0%, transparent 50%)" }} />
+        <div style={{ position: "relative", maxWidth: "760px", margin: "0 auto" }}>
+          <div style={{ display: "inline-block", padding: "4px 14px", background: "rgba(123,159,255,0.2)", borderRadius: "20px", fontSize: "12px", fontWeight: 600, color: "#7b9fff", letterSpacing: "1px", marginBottom: "24px" }}>
+            RÉGIE PUBLICITAIRE — POLYNÉSIE FRANÇAISE
+          </div>
+          <h1 style={{ fontSize: "52px", fontWeight: 800, color: "#fff", lineHeight: 1.15, marginBottom: "20px", letterSpacing: "-0.5px" }}>
+            Votre stratégie média,<br />
+            <span style={{ background: "linear-gradient(90deg, #7b9fff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>pilotée par des experts</span>
+          </h1>
+          <p style={{ fontSize: "18px", color: "#aaa", lineHeight: 1.6, marginBottom: "36px", maxWidth: "560px", margin: "0 auto 36px" }}>
+            MANA MEDIA gère vos campagnes publicitaires sur tous les supports locaux. Radio, digital, print, affichage — un seul interlocuteur, des résultats mesurés.
+          </p>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+            <a href="#offres" style={{ padding: "14px 28px", background: "#7b9fff", color: "#fff", borderRadius: "8px", fontSize: "15px", fontWeight: 700, textDecoration: "none" }}>
+              Découvrir nos offres
+            </a>
+            <a href="#contact" style={{ padding: "14px 28px", background: "rgba(255,255,255,0.08)", color: "#fff", borderRadius: "8px", fontSize: "15px", fontWeight: 600, textDecoration: "none", border: "1px solid rgba(255,255,255,0.15)" }}>
+              Nous contacter
+            </a>
+          </div>
+        </div>
 
-          {/* KPIs */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
-            {kpis.map((kpi) => (
-              <div key={kpi.label} style={{ background: "#fff", borderRadius: "10px", padding: "18px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
-                <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>{kpi.label}</div>
-                <div style={{ fontSize: "26px", fontWeight: 700, color: "#1a1a2e", margin: "6px 0 4px" }}>{kpi.value}</div>
-                <div style={{ fontSize: "12px", color: "#888" }}>{kpi.sub}</div>
-                <div style={{ position: "absolute", top: 0, right: 0, width: "4px", height: "100%", background: kpi.color, borderRadius: "0 10px 10px 0" }} />
+        {/* Canaux */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "56px", flexWrap: "wrap" }}>
+          {canaux.map((c) => (
+            <span key={c} style={{ padding: "6px 16px", background: "rgba(255,255,255,0.06)", borderRadius: "20px", fontSize: "12px", color: "#888", border: "1px solid rgba(255,255,255,0.08)" }}>
+              {c}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* AVANTAGES */}
+      <section style={{ padding: "80px 48px", background: "#f5f6fa" }}>
+        <div style={{ maxWidth: "960px", margin: "0 auto" }}>
+          <h2 style={{ fontSize: "32px", fontWeight: 800, textAlign: "center", marginBottom: "8px" }}>Pourquoi MANA MEDIA ?</h2>
+          <p style={{ textAlign: "center", color: "#888", fontSize: "15px", marginBottom: "48px" }}>La seule régie pub locale qui pilote vos campagnes de A à Z</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px" }}>
+            {avantages.map((a) => (
+              <div key={a.titre} style={{ background: "#fff", borderRadius: "12px", padding: "24px", border: "1px solid #e5e7eb" }}>
+                <div style={{ fontSize: "28px", marginBottom: "12px" }}>{a.icon}</div>
+                <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "8px" }}>{a.titre}</div>
+                <div style={{ fontSize: "13px", color: "#666", lineHeight: 1.6 }}>{a.desc}</div>
               </div>
             ))}
           </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px", marginBottom: "16px" }}>
-
-            {/* Plans récents */}
-            <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
-              <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Plans médias récents</h3>
-                <Link href="/mediaplan" style={{ fontSize: "13px", color: "#7b9fff", textDecoration: "none" }}>Voir le Gantt →</Link>
-              </div>
-              {plansRecents.length === 0 ? (
-                <div style={{ padding: "32px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>
-                  Aucun plan créé. <Link href="/clients" style={{ color: "#7b9fff" }}>Créer depuis une fiche client →</Link>
-                </div>
-              ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-                  <thead>
-                    <tr style={{ background: "#fafafa" }}>
-                      {["Client", "Canal", "Budget", "Période", "Statut"].map((h) => (
-                        <th key={h} style={{ textAlign: "left", padding: "9px 16px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", color: "#888", borderBottom: "1px solid #f0f0f0" }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {plansRecents.map((plan) => (
-                      <tr key={plan.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
-                        <td style={{ padding: "11px 16px", fontWeight: 600, color: "#1a1a2e" }}>{plan.clients?.nom || "—"}</td>
-                        <td style={{ padding: "11px 16px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: canalColor[plan.canal] || "#aaa", flexShrink: 0 }} />
-                            {plan.canal}
-                          </div>
-                        </td>
-                        <td style={{ padding: "11px 16px" }}>{plan.budget ? fmt(plan.budget) : "—"}</td>
-                        <td style={{ padding: "11px 16px", color: "#666", fontSize: "12px" }}>
-                          {formatDate(plan.date_debut)} → {formatDate(plan.date_fin)}
-                        </td>
-                        <td style={{ padding: "11px 16px" }}>
-                          <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: planStatutColor[plan.statut]?.bg, color: planStatutColor[plan.statut]?.color }}>
-                            {plan.statut}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-
-            {/* Répartition offres */}
-            <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "20px" }}>
-              <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e", marginBottom: "16px" }}>Répartition des offres</h3>
-              {offres.map(({ offre, count }) => (
-                <div key={offre} style={{ marginBottom: "14px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
-                    <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 600, background: offreBadge[offre].bg, color: offreBadge[offre].color }}>
-                      {offre}
-                    </span>
-                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#1a1a2e" }}>{count}</span>
-                  </div>
-                  <div style={{ background: "#f0f0f0", borderRadius: "4px", height: "6px", overflow: "hidden" }}>
-                    <div style={{ width: `${Math.round((count / maxOffre) * 100)}%`, height: "100%", borderRadius: "4px", background: offreBadge[offre].color }} />
-                  </div>
-                </div>
-              ))}
-              <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid #f0f0f0" }}>
-                {(["Active", "En pause", "Terminée"] as const).map((statut) => {
-                  const n = allClients.filter((c) => c.statut === statut).length;
-                  if (n === 0) return null;
-                  return (
-                    <div key={statut} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#555", marginBottom: "6px" }}>
-                      <span style={{ display: "inline-block", padding: "1px 7px", borderRadius: "10px", fontSize: "11px", fontWeight: 600, background: statutBadge[statut]?.bg, color: statutBadge[statut]?.color }}>
-                        {statut}
-                      </span>
-                      <span style={{ fontWeight: 600, color: "#1a1a2e" }}>{n}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Clients récents */}
-          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
-            <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Derniers clients</h3>
-              <Link href="/clients" style={{ fontSize: "13px", color: "#7b9fff", textDecoration: "none" }}>Voir tous →</Link>
-            </div>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-              <thead>
-                <tr style={{ background: "#fafafa" }}>
-                  {["Client", "Offre", "Budget / mois", "Canaux", "Statut", "ROI"].map((h) => (
-                    <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", color: "#888", borderBottom: "1px solid #f0f0f0" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {allClients.slice(0, 5).map((c) => (
-                  <tr key={c.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
-                    <td style={{ padding: "12px 16px" }}>
-                      <Link href={`/clients/${c.id}`} style={{ fontWeight: 600, color: "#1a1a2e", textDecoration: "none" }}>{c.nom}</Link>
-                      <div style={{ fontSize: "11px", color: "#888" }}>{c.secteur}</div>
-                    </td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: offreBadge[c.offre]?.bg, color: offreBadge[c.offre]?.color }}>
-                        {c.offre}
-                      </span>
-                    </td>
-                    <td style={{ padding: "12px 16px" }}>{fmt(c.budget_mensuel || 0)}</td>
-                    <td style={{ padding: "12px 16px", color: "#666", fontSize: "12px" }}>{c.canaux?.join(" · ") || "—"}</td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: statutBadge[c.statut]?.bg, color: statutBadge[c.statut]?.color }}>
-                        {c.statut}
-                      </span>
-                    </td>
-                    <td style={{ padding: "12px 16px", fontWeight: 700, color: c.roi?.startsWith("×") ? "#16a34a" : "#888" }}>
-                      {c.roi || "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
         </div>
-      </main>
+      </section>
+
+      {/* OFFRES */}
+      <section id="offres" style={{ padding: "80px 48px", background: "#fff" }}>
+        <div style={{ maxWidth: "960px", margin: "0 auto" }}>
+          <h2 style={{ fontSize: "32px", fontWeight: 800, textAlign: "center", marginBottom: "8px" }}>Nos offres</h2>
+          <p style={{ textAlign: "center", color: "#888", fontSize: "15px", marginBottom: "48px" }}>Choisissez le niveau d'accompagnement adapté à votre activité</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
+            {offres.map((o) => (
+              <div key={o.nom} style={{ borderRadius: "14px", border: o.dark ? "2px solid #7b9fff" : "1px solid #e5e7eb", overflow: "hidden", boxShadow: o.dark ? "0 8px 32px rgba(123,159,255,0.2)" : "none", position: "relative" }}>
+                {o.populaire && (
+                  <div style={{ position: "absolute", top: "16px", right: "16px", background: "#7b9fff", color: "#fff", fontSize: "10px", fontWeight: 700, padding: "3px 10px", borderRadius: "10px", letterSpacing: "0.5px" }}>
+                    POPULAIRE
+                  </div>
+                )}
+                <div style={{ background: o.dark ? "#1a1a2e" : "#f8f9fc", padding: "28px 24px", textAlign: "center", borderBottom: `1px solid ${o.dark ? "#2a2a4e" : "#e5e7eb"}` }}>
+                  <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "10px", fontSize: "11px", fontWeight: 700, background: o.badgeBg, color: o.badgeColor, marginBottom: "12px" }}>
+                    {o.nom}
+                  </span>
+                  <div style={{ fontSize: "30px", fontWeight: 800, color: o.dark ? "#fff" : "#1a1a2e" }}>
+                    {o.prix} <span style={{ fontSize: "13px", fontWeight: 400, color: o.dark ? "#aaa" : "#888" }}>F / mois</span>
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#888", marginTop: "6px" }}>{o.cible}</div>
+                </div>
+                <div style={{ padding: "24px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    {o.inclus.map((item) => (
+                      <div key={item} style={{ display: "flex", gap: "8px", fontSize: "13px", color: "#374151", alignItems: "flex-start" }}>
+                        <span style={{ color: "#16a34a", flexShrink: 0, marginTop: "1px" }}>✓</span>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                  <a href="#contact" style={{ display: "block", marginTop: "24px", padding: "11px", background: o.dark ? "#7b9fff" : "#1a1a2e", color: "#fff", borderRadius: "8px", fontSize: "13px", fontWeight: 600, textAlign: "center", textDecoration: "none" }}>
+                    Demander un devis →
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section id="contact" style={{ padding: "80px 48px", background: "#f5f6fa" }}>
+        <div style={{ maxWidth: "560px", margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>Parlons de votre projet</h2>
+          <p style={{ color: "#888", fontSize: "15px", marginBottom: "40px" }}>Contactez-nous pour un diagnostic gratuit de votre présence médiatique</p>
+          <div style={{ background: "#fff", borderRadius: "14px", padding: "32px", border: "1px solid #e5e7eb", textAlign: "left" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Nom de votre entreprise</label>
+                <input disabled placeholder="Ex : Hôtel Tahiti Nui" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", padding: "10px 12px", fontSize: "13px", color: "#888", background: "#f9f9f9", boxSizing: "border-box" as const }} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Email</label>
+                <input disabled placeholder="contact@votreentreprise.pf" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", padding: "10px 12px", fontSize: "13px", color: "#888", background: "#f9f9f9", boxSizing: "border-box" as const }} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Message</label>
+                <textarea disabled placeholder="Décrivez votre activité et vos objectifs…" rows={3} style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", padding: "10px 12px", fontSize: "13px", color: "#888", background: "#f9f9f9", resize: "none", boxSizing: "border-box" as const }} />
+              </div>
+              <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "6px", padding: "10px 12px", fontSize: "12px", color: "#c2410c" }}>
+                Formulaire en cours de déploiement — contactez-nous directement à <strong>contact@resoyu.pf</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{ background: "#1a1a2e", padding: "32px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+        <div>
+          <div style={{ fontSize: "15px", fontWeight: 700, color: "#fff", letterSpacing: "1px" }}>MANA MEDIA</div>
+          <div style={{ fontSize: "11px", color: "#555", marginTop: "2px" }}>Régie publicitaire · RESOYU · Polynésie française</div>
+        </div>
+        <Link href="/login" style={{ fontSize: "12px", color: "#555", textDecoration: "none" }}>
+          Accès administration →
+        </Link>
+      </footer>
+
     </div>
   );
 }
