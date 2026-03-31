@@ -38,7 +38,8 @@ function fmt(n: number) {
 
 function formatDate(d: string) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+  const [year, month, day] = d.split("T")[0].split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export default async function Reporting() {
