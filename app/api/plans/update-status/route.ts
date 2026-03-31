@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import { logActivity } from "@/utils/logActivity";
+import { sendPlanStatusEmail } from "@/utils/sendEmail";
 
 export async function POST(request: Request) {
   // Vérification du secret (cron Vercel ou appel manuel admin)
@@ -51,10 +52,34 @@ export async function POST(request: Request) {
     }
   }
 
-  // Appliquer les mises à jour
+  // Appliquer les mises à jour + envoyer emails
   for (const u of updates) {
     await supabase.from("plans_media").update({ statut: u.newStatut }).eq("id", u.id);
     updated++;
+
+    // Email si passage à "En cours" ou "Terminé"
+    if (u.newStatut === "En cours" || u.newStatut === "Terminé") {
+      const { data: planData } = await supabase
+        .from("plans_media")
+        .select("canal, client_id")
+        .eq("id", u.id)
+        .single();
+      if (planData) {
+        const { data: clientData } = await supabase
+          .from("clients")
+          .select("nom, contact_email, auth_user_id")
+          .eq("id", planData.client_id)
+          .single();
+        if (clientData?.auth_user_id && clientData?.contact_email) {
+          await sendPlanStatusEmail({
+            to: clientData.contact_email,
+            clientNom: clientData.nom,
+            canal: planData.canal,
+            statut: u.newStatut,
+          }).catch(() => {});
+        }
+      }
+    }
   }
 
   if (updated > 0) {

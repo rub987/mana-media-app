@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import { logActivity } from "@/utils/logActivity";
+import { sendPlanUpdatedEmail } from "@/utils/sendEmail";
 
 export async function PUT(request: Request) {
   const body = await request.json();
@@ -40,6 +41,17 @@ export async function PUT(request: Request) {
       const newVal = String(newVals[key] ?? "—");
       if (oldVal !== newVal) diffs.push(`${planLabels[key]}: ${oldVal} → ${newVal}`);
     }
+  }
+
+  // Envoyer email au client si modifications significatives
+  const { data: clientFull } = await supabase.from("clients").select("contact_email, auth_user_id").eq("id", data.client_id).single();
+  if (clientFull?.auth_user_id && clientFull?.contact_email && diffs.length > 0) {
+    await sendPlanUpdatedEmail({
+      to: clientFull.contact_email,
+      clientNom: client?.nom || "",
+      canal,
+      changes: diffs.join(" · "),
+    }).catch(() => {});
   }
 
   await logActivity({
