@@ -1,3 +1,4 @@
+import React from "react";
 import Sidebar from "../components/Sidebar";
 import { createClient } from "@/utils/supabase/server";
 
@@ -159,9 +160,9 @@ export default async function MediaPlan() {
                   </thead>
                   <tbody>
                     {clients.map((client) => (
-                      <>
+                      <React.Fragment key={client.nom}>
                         {/* Ligne client */}
-                        <tr key={client.nom} style={{ background: "#f8f9fc" }}>
+                        <tr style={{ background: "#f8f9fc" }}>
                           <td colSpan={NUM_WEEKS + 2} style={{ padding: "8px 16px" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                               <span style={{ fontSize: "12px", fontWeight: 700, color: "#1a1a2e" }}>{client.nom}</span>
@@ -190,7 +191,7 @@ export default async function MediaPlan() {
                             </td>
                           </tr>
                         ))}
-                      </>
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
