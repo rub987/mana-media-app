@@ -28,6 +28,9 @@ export default function ModifierClient() {
     statut: "Active",
     roi: "",
     progression: "0",
+    contact_nom: "",
+    contact_email: "",
+    contact_tel: "",
   });
 
   useEffect(() => {
@@ -45,6 +48,9 @@ export default function ModifierClient() {
           statut: data.statut || "Active",
           roi: data.roi || "",
           progression: String(data.progression || 0),
+          contact_nom: data.contact_nom || "",
+          contact_email: data.contact_email || "",
+          contact_tel: data.contact_tel || "",
         });
       }
       setLoading(false);
@@ -209,6 +215,27 @@ export default function ModifierClient() {
                       </label>
                     ))}
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact */}
+            <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "16px" }}>
+              <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>
+                Contact principal
+              </div>
+              <div style={{ padding: "20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <div>
+                  <label style={labelStyle}>Nom du contact</label>
+                  <input style={inputStyle} placeholder="Prénom Nom" value={form.contact_nom} onChange={(e) => setForm({ ...form, contact_nom: e.target.value })} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Email</label>
+                  <input style={inputStyle} type="email" placeholder="contact@entreprise.pf" value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Téléphone</label>
+                  <input style={inputStyle} placeholder="+689 …" value={form.contact_tel} onChange={(e) => setForm({ ...form, contact_tel: e.target.value })} />
                 </div>
               </div>
             </div>

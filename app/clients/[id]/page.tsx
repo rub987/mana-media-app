@@ -105,6 +105,9 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
                   { label: "Contrat", value: client.contrat || "—" },
                   { label: "Statut", value: client.statut },
                   { label: "Client depuis", value: new Date(client.created_at).toLocaleDateString("fr-FR") },
+                  { label: "Contact", value: client.contact_nom || "—" },
+                  { label: "Email", value: client.contact_email ? client.contact_email : "—" },
+                  { label: "Téléphone", value: client.contact_tel || "—" },
                 ].map((row) => (
                   <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f5f5f5", fontSize: "13px" }}>
                     <span style={{ color: "#888" }}>{row.label}</span>

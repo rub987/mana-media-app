@@ -34,7 +34,6 @@ export async function POST(request: Request) {
 
   const supabase = await createClient();
 
-  // Générer les initiales
   const mots = nom.trim().split(" ");
   const initiales = mots.length >= 2
     ? (mots[0][0] + mots[1][0]).toUpperCase()
@@ -52,22 +51,20 @@ export async function POST(request: Request) {
     contrat,
     initiales,
     progression: 0,
+    contact_nom: contact_nom || null,
+    contact_email: contact_email || null,
+    contact_tel: contact_tel || null,
   }).select().single();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // 2. Créer dans ZOHO CRM
+  // 2. Créer dans ZOHO
   const accessToken = await getZohoAccessToken(supabase);
-
   if (accessToken) {
-    const zohoRes = await fetch("https://www.zohoapis.com/crm/v2/Accounts", {
+    // Créer le Compte ZOHO
+    const zohoAccountRes = await fetch("https://www.zohoapis.com/crm/v2/Accounts", {
       method: "POST",
-      headers: {
-        Authorization: `Zoho-oauthtoken ${accessToken}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Zoho-oauthtoken ${accessToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         data: [{
           Account_Name: nom,
@@ -80,10 +77,36 @@ export async function POST(request: Request) {
         }],
       }),
     });
-    const zohoData = await zohoRes.json();
-    const zohoId = zohoData?.data?.[0]?.details?.id;
+    const zohoAccountData = await zohoAccountRes.json();
+    const zohoId = zohoAccountData?.data?.[0]?.details?.id;
+
+    let zohoContactId = null;
+
+    // Créer le Contact ZOHO si un contact est renseigné
+    if (zohoId && contact_nom) {
+      const nameParts = contact_nom.trim().split(" ");
+      const zohoContactRes = await fetch("https://www.zohoapis.com/crm/v2/Contacts", {
+        method: "POST",
+        headers: { Authorization: `Zoho-oauthtoken ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: [{
+            Last_Name: nameParts.length >= 2 ? nameParts.slice(1).join(" ") : contact_nom,
+            First_Name: nameParts.length >= 2 ? nameParts[0] : "",
+            Email: contact_email || null,
+            Phone: contact_tel || null,
+            Account_Name: { id: zohoId },
+          }],
+        }),
+      });
+      const zohoContactData = await zohoContactRes.json();
+      zohoContactId = zohoContactData?.data?.[0]?.details?.id || null;
+    }
+
     if (zohoId) {
-      await supabase.from("clients").update({ zoho_id: zohoId }).eq("id", newClient.id);
+      await supabase.from("clients").update({
+        zoho_id: zohoId,
+        zoho_contact_id: zohoContactId,
+      }).eq("id", newClient.id);
     }
   }
 

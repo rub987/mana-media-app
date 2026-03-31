@@ -30,7 +30,7 @@ async function getZohoAccessToken(supabase: Awaited<ReturnType<typeof createClie
 
 export async function PUT(request: Request) {
   const body = await request.json();
-  const { id, nom, secteur, offre, budget_mensuel, contrat, canaux, statut, roi, progression } = body;
+  const { id, nom, secteur, offre, budget_mensuel, contrat, canaux, statut, roi, progression, contact_nom, contact_email, contact_tel } = body;
 
   if (!id) return NextResponse.json({ error: "ID manquant" }, { status: 400 });
 
@@ -39,24 +39,31 @@ export async function PUT(request: Request) {
   // 1. Mettre à jour Supabase
   const { data: updated, error } = await supabase
     .from("clients")
-    .update({ nom, secteur, offre, budget_mensuel: parseInt(budget_mensuel) || 0, contrat, canaux, statut, roi, progression: parseInt(progression) || 0 })
+    .update({
+      nom, secteur, offre,
+      budget_mensuel: parseInt(budget_mensuel) || 0,
+      contrat, canaux, statut, roi,
+      progression: parseInt(progression) || 0,
+      contact_nom: contact_nom || null,
+      contact_email: contact_email || null,
+      contact_tel: contact_tel || null,
+    })
     .eq("id", id)
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // 2. Mettre à jour ZOHO si zoho_id existe
   const zohoId = updated?.zoho_id;
+  const zohoContactId = updated?.zoho_contact_id;
+
   if (zohoId) {
     const accessToken = await getZohoAccessToken(supabase);
     if (accessToken) {
+      // Mettre à jour le Compte ZOHO
       await fetch(`https://www.zohoapis.com/crm/v2/Accounts/${zohoId}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Zoho-oauthtoken ${accessToken}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Zoho-oauthtoken ${accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           data: [{
             id: zohoId,
@@ -70,6 +77,39 @@ export async function PUT(request: Request) {
           }],
         }),
       });
+
+      // Mettre à jour ou créer le Contact ZOHO
+      if (contact_nom) {
+        const nameParts = contact_nom.trim().split(" ");
+        const contactPayload = {
+          Last_Name: nameParts.length >= 2 ? nameParts.slice(1).join(" ") : contact_nom,
+          First_Name: nameParts.length >= 2 ? nameParts[0] : "",
+          Email: contact_email || null,
+          Phone: contact_tel || null,
+          Account_Name: { id: zohoId },
+        };
+
+        if (zohoContactId) {
+          // Mettre à jour le contact existant
+          await fetch(`https://www.zohoapis.com/crm/v2/Contacts/${zohoContactId}`, {
+            method: "PUT",
+            headers: { Authorization: `Zoho-oauthtoken ${accessToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ data: [{ id: zohoContactId, ...contactPayload }] }),
+          });
+        } else {
+          // Créer un nouveau contact et sauvegarder son ID
+          const res = await fetch("https://www.zohoapis.com/crm/v2/Contacts", {
+            method: "POST",
+            headers: { Authorization: `Zoho-oauthtoken ${accessToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ data: [contactPayload] }),
+          });
+          const data = await res.json();
+          const newContactId = data?.data?.[0]?.details?.id;
+          if (newContactId) {
+            await supabase.from("clients").update({ zoho_contact_id: newContactId }).eq("id", id);
+          }
+        }
+      }
     }
   }
 
