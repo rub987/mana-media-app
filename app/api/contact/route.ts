@@ -3,8 +3,33 @@ import { NextResponse } from "next/server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Rate limiting en mémoire : IP → timestamps des envois
+const rateLimitMap = new Map<string, number[]>();
+const WINDOW_MS = 60 * 60 * 1000; // 1 heure
+const MAX_REQUESTS = 3; // max 3 envois par IP par heure
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = (rateLimitMap.get(ip) || []).filter(t => now - t < WINDOW_MS);
+  if (timestamps.length >= MAX_REQUESTS) return true;
+  rateLimitMap.set(ip, [...timestamps, now]);
+  return false;
+}
+
 export async function POST(request: Request) {
-  const { entreprise, email, message } = await request.json();
+  // Rate limiting par IP
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ error: "Trop de messages envoyés. Réessayez dans une heure." }, { status: 429 });
+  }
+
+  const { entreprise, email, message, website } = await request.json();
+
+  // Honeypot — si le champ "website" est rempli, c'est un bot
+  if (website) {
+    return NextResponse.json({ success: true }); // Fausse réussite pour ne pas alerter le bot
+  }
+
   if (!entreprise || !email || !message) {
     return NextResponse.json({ error: "Tous les champs sont requis" }, { status: 400 });
   }

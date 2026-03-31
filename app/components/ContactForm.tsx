@@ -14,7 +14,7 @@ const inputStyle = {
 };
 
 export default function ContactForm() {
-  const [form, setForm] = useState({ entreprise: "", email: "", message: "" });
+  const [form, setForm] = useState({ entreprise: "", email: "", message: "", website: "" }); // website = honeypot
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -27,7 +27,7 @@ export default function ContactForm() {
     const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ entreprise: form.entreprise, email: form.email, message: form.message, website: form.website }),
     });
     const data = await res.json();
     setLoading(false);
@@ -52,6 +52,18 @@ export default function ContactForm() {
   return (
     <form onSubmit={handleSubmit} style={{ background: "#fff", borderRadius: "14px", padding: "32px", border: "1px solid #e5e7eb", textAlign: "left" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+
+        {/* Honeypot — invisible pour les humains, les bots le remplissent */}
+        <div style={{ position: "absolute", left: "-9999px", opacity: 0, pointerEvents: "none" }} aria-hidden="true">
+          <input
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={form.website}
+            onChange={(e) => setForm({ ...form, website: e.target.value })}
+          />
+        </div>
+
         <div>
           <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Nom de votre entreprise</label>
           <input
