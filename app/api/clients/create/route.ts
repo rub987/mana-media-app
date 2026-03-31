@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import { logActivity } from "@/utils/logActivity";
 
 async function getZohoAccessToken(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data } = await supabase.from("zoho_tokens").select("*").eq("id", 1).single();
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
   const { nom, secteur, offre, budget_mensuel, canaux, contrat, contact_nom, contact_email, contact_tel, notes } = body;
 
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const mots = nom.trim().split(" ");
   const initiales = mots.length >= 2
@@ -109,6 +111,15 @@ export async function POST(request: Request) {
       }).eq("id", newClient.id);
     }
   }
+
+  await logActivity({
+    user_email: user?.email,
+    action: "Client créé",
+    entity_type: "client",
+    entity_id: newClient.id,
+    entity_name: nom,
+    details: `Offre: ${offre} · Secteur: ${secteur}`,
+  });
 
   return NextResponse.json({ success: true, client: newClient });
 }

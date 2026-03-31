@@ -19,9 +19,18 @@ export default function AuthHashRedirect() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    supabase.auth.setSession({ access_token, refresh_token }).then(({ data: { session } }) => {
+    supabase.auth.setSession({ access_token, refresh_token }).then(async ({ data: { session } }) => {
       if (session) {
         const role = session.user.user_metadata?.role;
+        await fetch("/api/activity/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_email: session.user.email,
+            role: role || "client",
+            action: "Connexion portail client",
+          }),
+        });
         window.location.replace(role === "client" ? "/portal" : "/dashboard");
       }
     });

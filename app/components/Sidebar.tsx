@@ -14,6 +14,7 @@ const navItems = [
 
 const adminItems = [
   { label: "Offres & Tarifs", href: "/offres", icon: "📦" },
+  { label: "Activité", href: "/activite", icon: "🕐" },
   { label: "Paramètres", href: "/parametres", icon: "⚙️" },
 ];
 

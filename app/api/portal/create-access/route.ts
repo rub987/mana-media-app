@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/utils/supabase/server";
+import { logActivity } from "@/utils/logActivity";
 
 export async function POST(request: Request) {
   const { client_id, email } = await request.json();
@@ -41,6 +42,16 @@ export async function POST(request: Request) {
     auth_user_id: inviteData.user.id,
     contact_email: email,
   }).eq("id", client_id);
+
+  const { data: { user: adminUser } } = await supabase.auth.getUser();
+  await logActivity({
+    user_email: adminUser?.email,
+    action: "Accès portail créé",
+    entity_type: "client",
+    entity_id: client_id,
+    entity_name: client.nom,
+    details: `Invitation envoyée à ${email}`,
+  });
 
   return NextResponse.json({ success: true, email });
 }

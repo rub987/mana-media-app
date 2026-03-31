@@ -23,6 +23,11 @@ export default function Login() {
       setError("Email ou mot de passe incorrect.");
       setLoading(false);
     } else {
+      await fetch("/api/activity/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_email: email, role: "admin", action: "Connexion admin" }),
+      });
       router.push("/");
       router.refresh();
     }

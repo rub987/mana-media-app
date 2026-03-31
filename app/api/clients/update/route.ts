@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import { logActivity } from "@/utils/logActivity";
 
 async function getZohoAccessToken(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data } = await supabase.from("zoho_tokens").select("*").eq("id", 1).single();
@@ -35,6 +36,7 @@ export async function PUT(request: Request) {
   if (!id) return NextResponse.json({ error: "ID manquant" }, { status: 400 });
 
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   // 1. Mettre à jour Supabase
   const { data: updated, error } = await supabase
@@ -112,6 +114,15 @@ export async function PUT(request: Request) {
       }
     }
   }
+
+  await logActivity({
+    user_email: user?.email,
+    action: "Client modifié",
+    entity_type: "client",
+    entity_id: id,
+    entity_name: nom,
+    details: `Offre: ${offre} · Statut: ${statut}`,
+  });
 
   return NextResponse.json({ success: true, zoho_synced: !!zohoId });
 }

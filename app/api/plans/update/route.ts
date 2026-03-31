@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import { logActivity } from "@/utils/logActivity";
 
 export async function PUT(request: Request) {
   const body = await request.json();
@@ -8,6 +9,7 @@ export async function PUT(request: Request) {
   if (!id) return NextResponse.json({ error: "ID manquant" }, { status: 400 });
 
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { data, error } = await supabase
     .from("plans_media")
@@ -24,5 +26,16 @@ export async function PUT(request: Request) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const { data: client } = await supabase.from("clients").select("nom").eq("id", data.client_id).single();
+  await logActivity({
+    user_email: user?.email,
+    action: "Plan modifié",
+    entity_type: "plan",
+    entity_id: id,
+    entity_name: `${canal} — ${client?.nom || ""}`,
+    details: `Budget: ${parseInt(budget) || 0} F · ${statut}`,
+  });
+
   return NextResponse.json({ success: true, plan: data });
 }
