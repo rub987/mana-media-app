@@ -145,16 +145,18 @@ export default async function Portal() {
                   <div style={{ fontSize: "12px", color: "#888" }}>Régie publicitaire RESOYU</div>
                 </div>
               </div>
-              {[
-                { label: "Email", value: "info@redsoyu.com" },
-                { label: "Téléphone", value: "(+689) 40 85 60 72" },
-                { label: "Territoire", value: "Polynésie française" },
-              ].map((row) => (
-                <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f5f5f5", fontSize: "13px" }}>
-                  <span style={{ color: "#888" }}>{row.label}</span>
-                  <span style={{ fontWeight: 500, color: "#1a1a2e" }}>{row.value}</span>
-                </div>
-              ))}
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f5f5f5", fontSize: "13px" }}>
+                <span style={{ color: "#888" }}>Territoire</span>
+                <span style={{ fontWeight: 500, color: "#1a1a2e" }}>Polynésie française</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f5f5f5", fontSize: "13px" }}>
+                <span style={{ color: "#888" }}>Email</span>
+                <a href="mailto:info@redsoyu.com" style={{ fontWeight: 500, color: "#7b9fff", textDecoration: "none" }}>info@redsoyu.com</a>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", fontSize: "13px" }}>
+                <span style={{ color: "#888" }}>Téléphone</span>
+                <a href="tel:+68940856072" style={{ fontWeight: 500, color: "#7b9fff", textDecoration: "none" }}>(+689) 40 85 60 72</a>
+              </div>
             </div>
           </div>
         </div>
