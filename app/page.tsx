@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AuthHashRedirect from "./components/AuthHashRedirect";
+import { createClient } from "@/utils/supabase/server";
 
 const offres = [
   {
@@ -60,7 +61,11 @@ const avantages = [
 
 const canaux = ["Radio", "Digital", "Print", "Affichage", "Télévision"];
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isAdmin = user && user.user_metadata?.role !== "client";
+
   return (
     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", background: "#fff", color: "#1a1a2e" }}>
       <AuthHashRedirect />
@@ -74,9 +79,15 @@ export default function Home() {
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <a href="#offres" style={{ padding: "8px 14px", fontSize: "13px", color: "#555", textDecoration: "none" }}>Offres</a>
           <a href="#contact" style={{ padding: "8px 14px", fontSize: "13px", color: "#555", textDecoration: "none" }}>Contact</a>
-          <Link href="/login" style={{ padding: "8px 18px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
-            Accès client →
-          </Link>
+          {isAdmin ? (
+            <Link href="/dashboard" style={{ padding: "8px 18px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
+              Backoffice →
+            </Link>
+          ) : (
+            <Link href="/login" style={{ padding: "8px 18px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
+              Accès client →
+            </Link>
+          )}
         </div>
       </nav>
 

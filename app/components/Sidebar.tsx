@@ -152,6 +152,9 @@ export default function Sidebar() {
           </div>
         </div>
       </div>
+      <Link href="/" style={{ margin: "0 12px 4px", padding: "8px 12px", background: "transparent", border: "1px solid #2a2a4e", borderRadius: "8px", color: "#666", fontSize: "12px", cursor: "pointer", textAlign: "left", textDecoration: "none", display: "block" }}>
+        🌐 Page d'accueil
+      </Link>
       <button onClick={handleLogout} style={{ margin: "0 12px 12px", padding: "8px 12px", background: "transparent", border: "1px solid #2a2a4e", borderRadius: "8px", color: "#666", fontSize: "12px", cursor: "pointer", textAlign: "left" }}>
         🚪 Déconnexion
       </button>
