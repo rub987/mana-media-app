@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import PlanMediaSection from "../../components/PlanMediaSection";
 import RefreshFromZohoButton from "../../components/RefreshFromZohoButton";
+import CreatePortalAccessButton from "../../components/CreatePortalAccessButton";
 
 export const revalidate = 0;
 
@@ -154,6 +155,21 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
               </div>
 
             </div>
+          </div>
+
+          {/* Accès portail */}
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "16px 20px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
+            <div>
+              <div style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Portail client</div>
+              <div style={{ fontSize: "12px", color: "#888", marginTop: "2px" }}>
+                {client.auth_user_id ? "Le client peut accéder à ses campagnes en ligne." : "Donnez accès à ce client pour qu'il suive ses campagnes."}
+              </div>
+            </div>
+            <CreatePortalAccessButton
+              clientId={id}
+              contactEmail={client.contact_email || ""}
+              hasAccess={!!client.auth_user_id}
+            />
           </div>
 
           {/* Plan média */}
