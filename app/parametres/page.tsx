@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
 import SyncContactsButton from "../components/SyncContactsButton";
 import SyncStatusButton from "../components/SyncStatusButton";
+import TeamSection from "../components/TeamSection";
 
 export const revalidate = 0;
 
@@ -94,6 +95,8 @@ export default async function Parametres() {
               </div>
             )}
           </div>
+
+          <TeamSection />
 
           {/* Statuts des plans */}
           <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "16px" }}>
