@@ -1,6 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 
 export const revalidate = 0;
 
@@ -49,7 +48,18 @@ export default async function Portal() {
 
   const allPlans = plans || [];
   const plansEnCours = allPlans.filter(p => p.statut === "En cours").length;
+  const plansTermines = allPlans.filter(p => p.statut === "Terminé").length;
+  const plansPlanifies = allPlans.filter(p => p.statut === "Planifié").length;
   const budgetPlans = allPlans.reduce((acc, p) => acc + (p.budget || 0), 0);
+
+  // Budget par canal
+  const budgetParCanal: Record<string, number> = {};
+  for (const plan of allPlans) {
+    if (plan.canal && plan.budget) {
+      budgetParCanal[plan.canal] = (budgetParCanal[plan.canal] || 0) + plan.budget;
+    }
+  }
+  const budgetTotal = Object.values(budgetParCanal).reduce((a, b) => a + b, 0);
 
   return (
     <div style={{ minHeight: "100vh", background: "#f5f6fa", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
@@ -96,6 +106,59 @@ export default async function Portal() {
           ))}
         </div>
 
+        {/* Infos entreprise + Contact agence */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+
+          {/* Fiche entreprise */}
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>
+              Votre entreprise
+            </div>
+            <div style={{ padding: "8px 20px 12px" }}>
+              {[
+                { label: "Raison sociale", value: client.nom },
+                { label: "Secteur", value: client.secteur || "—" },
+                { label: "Offre souscrite", value: client.offre },
+                { label: "Contrat", value: client.contrat || "—" },
+                { label: "Statut", value: client.statut },
+              ].map((row) => (
+                <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f5f5f5", fontSize: "13px" }}>
+                  <span style={{ color: "#888" }}>{row.label}</span>
+                  <span style={{ fontWeight: 500, color: "#1a1a2e" }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Contact agence */}
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>
+              Votre contact MANA MEDIA
+            </div>
+            <div style={{ padding: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
+                <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "linear-gradient(135deg, #7b9fff, #a78bfa)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "16px", flexShrink: 0 }}>
+                  M
+                </div>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#1a1a2e" }}>MANA MEDIA</div>
+                  <div style={{ fontSize: "12px", color: "#888" }}>Régie publicitaire RESOYU</div>
+                </div>
+              </div>
+              {[
+                { label: "Email", value: "contact@resoyu.pf" },
+                { label: "Téléphone", value: "+689 40 00 00 00" },
+                { label: "Territoire", value: "Polynésie française" },
+              ].map((row) => (
+                <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f5f5f5", fontSize: "13px" }}>
+                  <span style={{ color: "#888" }}>{row.label}</span>
+                  <span style={{ fontWeight: 500, color: "#1a1a2e" }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Budget progression */}
         <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "20px", marginBottom: "16px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
@@ -110,6 +173,62 @@ export default async function Portal() {
             <span>{fmt(client.budget_mensuel || 0)} / mois</span>
           </div>
         </div>
+
+        {/* Reporting — Budget par canal + Répartition statuts */}
+        {allPlans.length > 0 && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+
+            {/* Budget par canal */}
+            {budgetTotal > 0 && (
+              <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
+                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>
+                  Budget engagé par canal
+                </div>
+                <div style={{ padding: "16px 20px" }}>
+                  {Object.entries(budgetParCanal).sort((a, b) => b[1] - a[1]).map(([canal, budget]) => (
+                    <div key={canal} style={{ marginBottom: "12px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "4px" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 500, color: "#1a1a2e" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: canalColor[canal] || "#aaa" }} />
+                          {canal}
+                        </span>
+                        <span style={{ color: "#888" }}>{fmt(budget)}</span>
+                      </div>
+                      <div style={{ background: "#f0f0f0", borderRadius: "4px", height: "6px", overflow: "hidden" }}>
+                        <div style={{ width: `${Math.round((budget / budgetTotal) * 100)}%`, height: "100%", borderRadius: "4px", background: canalColor[canal] || "#7b9fff" }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Répartition des statuts */}
+            <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
+              <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>
+                Répartition des plans
+              </div>
+              <div style={{ padding: "16px 20px" }}>
+                {[
+                  { label: "En cours", count: plansEnCours, ...statutColor["En cours"] },
+                  { label: "Planifié", count: plansPlanifies, ...statutColor["Planifié"] },
+                  { label: "Terminé", count: plansTermines, ...statutColor["Terminé"] },
+                ].map((s) => (
+                  <div key={s.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f5f5f5", fontSize: "13px" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 600, background: s.bg, color: s.color }}>{s.label}</span>
+                    </span>
+                    <span style={{ fontWeight: 700, color: "#1a1a2e", fontSize: "18px" }}>{s.count}</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", fontSize: "13px" }}>
+                  <span style={{ color: "#888" }}>Total</span>
+                  <span style={{ fontWeight: 700, color: "#1a1a2e", fontSize: "18px" }}>{allPlans.length}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Canaux actifs */}
         {client.canaux && client.canaux.length > 0 && (
