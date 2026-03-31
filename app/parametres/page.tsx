@@ -2,6 +2,7 @@ import Sidebar from "../components/Sidebar";
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
 import SyncContactsButton from "../components/SyncContactsButton";
+import SyncStatusButton from "../components/SyncStatusButton";
 
 export const revalidate = 0;
 
@@ -92,6 +93,19 @@ export default async function Parametres() {
                 <SyncContactsButton />
               </div>
             )}
+          </div>
+
+          {/* Statuts des plans */}
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "16px" }}>
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>
+              Statuts des plans médias
+            </div>
+            <div style={{ padding: "16px 20px" }}>
+              <div style={{ fontSize: "12px", color: "#888", marginBottom: "12px" }}>
+                Met à jour automatiquement les statuts selon les dates (Planifié → En cours → Terminé). Exécuté chaque nuit à minuit.
+              </div>
+              <SyncStatusButton />
+            </div>
           </div>
 
           {/* Base de données */}
