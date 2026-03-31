@@ -146,8 +146,8 @@ export default async function Portal() {
                 </div>
               </div>
               {[
-                { label: "Email", value: "contact@resoyu.pf" },
-                { label: "Téléphone", value: "+689 40 00 00 00" },
+                { label: "Email", value: "info@redsoyu.com" },
+                { label: "Téléphone", value: "(+689) 40 85 60 72" },
                 { label: "Territoire", value: "Polynésie française" },
               ].map((row) => (
                 <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f5f5f5", fontSize: "13px" }}>
