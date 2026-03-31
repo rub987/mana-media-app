@@ -1,6 +1,7 @@
 import Sidebar from "../components/Sidebar";
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
+import SyncContactsButton from "../components/SyncContactsButton";
 
 export const revalidate = 0;
 
@@ -67,7 +68,7 @@ export default async function Parametres() {
               {row("Dernière sync", zohoUpdatedAt ? formatDate(zohoUpdatedAt) : "—")}
               {row("Clients en base", String(clients?.length ?? 0))}
             </div>
-            <div style={{ padding: "12px 20px", borderTop: "1px solid #f0f0f0", display: "flex", gap: "8px" }}>
+            <div style={{ padding: "12px 20px", borderTop: "1px solid #f0f0f0", display: "flex", gap: "8px", flexWrap: "wrap" }}>
               <Link
                 href="/api/zoho/auth"
                 style={{ padding: "8px 16px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 500, textDecoration: "none" }}
@@ -83,6 +84,14 @@ export default async function Parametres() {
                 </Link>
               )}
             </div>
+            {zohoConnected && (
+              <div style={{ padding: "12px 20px", borderTop: "1px solid #f0f0f0" }}>
+                <div style={{ fontSize: "12px", color: "#888", marginBottom: "8px" }}>
+                  Importe les contacts ZOHO existants vers les fiches clients de l'app
+                </div>
+                <SyncContactsButton />
+              </div>
+            )}
           </div>
 
           {/* Base de données */}
