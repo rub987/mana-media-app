@@ -5,7 +5,7 @@ import { useEffect } from "react";
 export default function AuthHashRedirect() {
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash.includes("access_token=")) {
-      window.location.replace("/auth/callback" + window.location.hash);
+      window.location.replace("/auth/set-session" + window.location.hash);
     }
   }, []);
 

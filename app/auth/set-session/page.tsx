@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 
-export default function AuthCallback() {
+export default function SetSession() {
   const router = useRouter();
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export default function AuthCallback() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    async function handleCallback() {
+    async function handle() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const role = session.user.user_metadata?.role;
@@ -30,7 +30,7 @@ export default function AuthCallback() {
       });
     }
 
-    handleCallback();
+    handle();
   }, [router]);
 
   return (

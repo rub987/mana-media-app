@@ -7,7 +7,11 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    await supabase.auth.exchangeCodeForSession(code);
+    const { data: { user } } = await supabase.auth.exchangeCodeForSession(code).then(async () => {
+      return supabase.auth.getUser();
+    });
+    const role = user?.user_metadata?.role;
+    return NextResponse.redirect(`${origin}${role === "client" ? "/portal" : "/dashboard"}`);
   }
 
   return NextResponse.redirect(`${origin}/`);
