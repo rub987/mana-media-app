@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AuthHashRedirect from "./components/AuthHashRedirect";
 import { createClient } from "@/utils/supabase/server";
+import ContactForm from "./components/ContactForm";
 
 const offres = [
   {
@@ -188,25 +189,7 @@ export default async function Home() {
         <div style={{ maxWidth: "560px", margin: "0 auto", textAlign: "center" }}>
           <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>Parlons de votre projet</h2>
           <p style={{ color: "#888", fontSize: "15px", marginBottom: "40px" }}>Contactez-nous pour un diagnostic gratuit de votre présence médiatique</p>
-          <div style={{ background: "#fff", borderRadius: "14px", padding: "32px", border: "1px solid #e5e7eb", textAlign: "left" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Nom de votre entreprise</label>
-                <input disabled placeholder="Ex : Hôtel Tahiti Nui" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", padding: "10px 12px", fontSize: "13px", color: "#888", background: "#f9f9f9", boxSizing: "border-box" as const }} />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Email</label>
-                <input disabled placeholder="contact@votreentreprise.pf" style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", padding: "10px 12px", fontSize: "13px", color: "#888", background: "#f9f9f9", boxSizing: "border-box" as const }} />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Message</label>
-                <textarea disabled placeholder="Décrivez votre activité et vos objectifs…" rows={3} style={{ width: "100%", border: "1px solid #d1d5db", borderRadius: "6px", padding: "10px 12px", fontSize: "13px", color: "#888", background: "#f9f9f9", resize: "none", boxSizing: "border-box" as const }} />
-              </div>
-              <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "6px", padding: "10px 12px", fontSize: "12px", color: "#c2410c" }}>
-                Formulaire en cours de déploiement — contactez-nous directement à <strong>contact@resoyu.pf</strong>
-              </div>
-            </div>
-          </div>
+          <ContactForm />
         </div>
       </section>
 
