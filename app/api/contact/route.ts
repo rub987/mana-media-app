@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
+import { createNotification } from "@/utils/createNotification";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -61,5 +62,12 @@ export async function POST(request: Request) {
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await createNotification({
+    type: "contact",
+    title: `Nouveau contact — ${entreprise}`,
+    body: `${email} : ${message.slice(0, 100)}${message.length > 100 ? "…" : ""}`,
+  });
+
   return NextResponse.json({ success: true });
 }

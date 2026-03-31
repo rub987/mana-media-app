@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import { logActivity } from "@/utils/logActivity";
 import { sendPlanCreatedEmail } from "@/utils/sendEmail";
+import { createNotification } from "@/utils/createNotification";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -43,6 +44,12 @@ export async function POST(request: Request) {
     entity_id: data.id,
     entity_name: `${canal} — ${client?.nom || ""}`,
     details: `Budget: ${parseInt(budget) || 0} F · ${statut || "Planifié"}`,
+  });
+
+  await createNotification({
+    type: "plan_created",
+    title: `Plan créé — ${client?.nom || ""}`,
+    body: `${canal} · ${parseInt(budget) || 0} F/mois · ${statut || "Planifié"}`,
   });
 
   return NextResponse.json({ success: true, plan: data });

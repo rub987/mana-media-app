@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import { logActivity } from "@/utils/logActivity";
 import { sendPlanUpdatedEmail } from "@/utils/sendEmail";
+import { createNotification } from "@/utils/createNotification";
 
 export async function PUT(request: Request) {
   const body = await request.json();
@@ -62,6 +63,14 @@ export async function PUT(request: Request) {
     entity_name: `${canal} — ${client?.nom || ""}`,
     details: diffs.length > 0 ? diffs.join(" · ") : "Aucun changement détecté",
   });
+
+  if (diffs.length > 0) {
+    await createNotification({
+      type: "plan_updated",
+      title: `Plan modifié — ${client?.nom || ""}`,
+      body: diffs.join(" · "),
+    });
+  }
 
   return NextResponse.json({ success: true, plan: data });
 }

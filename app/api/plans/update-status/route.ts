@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import { logActivity } from "@/utils/logActivity";
 import { sendPlanStatusEmail } from "@/utils/sendEmail";
+import { createNotification } from "@/utils/createNotification";
 
 export async function POST(request: Request) {
   // Vérification du secret (cron Vercel ou appel manuel admin)
@@ -88,6 +89,12 @@ export async function POST(request: Request) {
       entity_type: "plan",
       details: `${updated} plan(s) mis à jour automatiquement`,
       role: "système",
+    });
+
+    await createNotification({
+      type: "plan_status",
+      title: `${updated} plan(s) mis à jour automatiquement`,
+      body: updates.map(u => `${u.oldStatut} → ${u.newStatut}`).join(" · "),
     });
   }
 

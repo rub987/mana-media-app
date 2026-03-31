@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
+import NotifBell from "./NotifBell";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: "📊" },
@@ -112,6 +113,7 @@ export default function Sidebar() {
         <div style={{ padding: "16px 20px 4px", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1.5px", color: "#555" }}>
           Admin
         </div>
+        <NotifBell />
         {adminItems.map((item) => (
           <Link key={item.href} href={item.href} style={{
             display: "flex",
