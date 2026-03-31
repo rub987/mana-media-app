@@ -58,7 +58,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
                 <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 600, background: offreBadge[offre]?.bg, color: offreBadge[offre]?.color }}>
                   {offre}
                 </span>
-                <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 600, background: client.statut === "Active" ? "#dcfce7" : "#fff7ed", color: client.statut === "Active" ? "#16a34a" : "#c2410c" }}>
+                <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 600, background: client.statut === "Active" ? "#dcfce7" : client.statut === "Archivé" ? "#f3f4f6" : "#fff7ed", color: client.statut === "Active" ? "#16a34a" : client.statut === "Archivé" ? "#6b7280" : "#c2410c" }}>
                   {client.statut}
                 </span>
               </div>

@@ -166,6 +166,7 @@ export default function ModifierClient() {
                     <option>Active</option>
                     <option>En pause</option>
                     <option>Terminée</option>
+                    <option>Archivé</option>
                   </select>
                 </div>
               </div>

@@ -36,16 +36,20 @@ export default function ClientsGrid({ clients }: { clients: Client[] }) {
   const [search, setSearch] = useState("");
   const [filtreOffre, setFiltreOffre] = useState<string>("Tous");
   const [filtreStatut, setFiltreStatut] = useState<string>("Tous");
+  const [showArchived, setShowArchived] = useState(false);
+
+  const archivedCount = useMemo(() => clients.filter(c => c.statut === "Archivé").length, [clients]);
 
   const filtered = useMemo(() => {
     return clients.filter((c) => {
+      if (!showArchived && c.statut === "Archivé") return false;
       const q = search.toLowerCase();
       const matchSearch = !q || c.nom.toLowerCase().includes(q) || (c.secteur || "").toLowerCase().includes(q);
       const matchOffre = filtreOffre === "Tous" || c.offre === filtreOffre;
       const matchStatut = filtreStatut === "Tous" || c.statut === filtreStatut;
       return matchSearch && matchOffre && matchStatut;
     });
-  }, [clients, search, filtreOffre, filtreStatut]);
+  }, [clients, search, filtreOffre, filtreStatut, showArchived]);
 
   const filterBtn = (active: boolean) => ({
     padding: "5px 12px",
@@ -88,6 +92,14 @@ export default function ClientsGrid({ clients }: { clients: Client[] }) {
           ))}
         </div>
 
+        {archivedCount > 0 && (
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            style={{ padding: "5px 12px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", border: "1px solid #e5e7eb", background: showArchived ? "#f3f4f6" : "#fff", color: "#6b7280", fontWeight: 600 }}
+          >
+            {showArchived ? "Masquer archivés" : `Archivés (${archivedCount})`}
+          </button>
+        )}
         {(search || filtreOffre !== "Tous" || filtreStatut !== "Tous") && (
           <button
             onClick={() => { setSearch(""); setFiltreOffre("Tous"); setFiltreStatut("Tous"); }}
@@ -125,7 +137,7 @@ export default function ClientsGrid({ clients }: { clients: Client[] }) {
             const avatarColor = colors[(c.initiales?.charCodeAt(0) || 0) % colors.length];
 
             return (
-              <Link key={c.id} href={`/clients/${c.id}`} style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "18px", cursor: "pointer", textDecoration: "none", display: "block" }}>
+              <Link key={c.id} href={`/clients/${c.id}`} style={{ background: c.statut === "Archivé" ? "#fafafa" : "#fff", borderRadius: "10px", border: `1px solid ${c.statut === "Archivé" ? "#e5e7eb" : "#e5e7eb"}`, padding: "18px", cursor: "pointer", textDecoration: "none", display: "block", opacity: c.statut === "Archivé" ? 0.7 : 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
                   <div style={{ width: "40px", height: "40px", borderRadius: "8px", background: avatarColor.bg, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "14px", color: avatarColor.color, flexShrink: 0 }}>
                     {c.initiales}
