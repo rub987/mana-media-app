@@ -38,6 +38,9 @@ export async function PUT(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Capturer l'état avant modification
+  const { data: before } = await supabase.from("clients").select("*").eq("id", id).single();
+
   // 1. Mettre à jour Supabase
   const { data: updated, error } = await supabase
     .from("clients")
@@ -115,13 +118,29 @@ export async function PUT(request: Request) {
     }
   }
 
+  // Calculer le diff
+  const labels: Record<string, string> = {
+    nom: "Nom", secteur: "Secteur", offre: "Offre", statut: "Statut",
+    budget_mensuel: "Budget", contrat: "Contrat", roi: "ROI",
+    progression: "Progression", contact_nom: "Contact", contact_email: "Email", contact_tel: "Tél",
+  };
+  const newValues: Record<string, unknown> = { nom, secteur, offre, statut, contrat, roi, budget_mensuel: parseInt(budget_mensuel) || 0, progression: parseInt(progression) || 0, contact_nom, contact_email, contact_tel };
+  const diffs: string[] = [];
+  if (before) {
+    for (const key of Object.keys(labels)) {
+      const oldVal = String(before[key] ?? "—");
+      const newVal = String(newValues[key] ?? "—");
+      if (oldVal !== newVal) diffs.push(`${labels[key]}: ${oldVal} → ${newVal}`);
+    }
+  }
+
   await logActivity({
     user_email: user?.email,
     action: "Client modifié",
     entity_type: "client",
     entity_id: id,
     entity_name: nom,
-    details: `Offre: ${offre} · Statut: ${statut}`,
+    details: diffs.length > 0 ? diffs.join(" · ") : "Aucun changement détecté",
   });
 
   return NextResponse.json({ success: true, zoho_synced: !!zohoId });
