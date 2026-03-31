@@ -25,7 +25,9 @@ export async function POST(request: Request) {
   }
 
   // Inviter l'utilisateur par email
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mana-media-app.vercel.app";
   const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${siteUrl}/auth/callback`,
     data: {
       role: "client",
       client_id,

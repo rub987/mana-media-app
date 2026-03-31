@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AuthHashRedirect from "./components/AuthHashRedirect";
 
 const offres = [
   {
@@ -62,6 +63,7 @@ const canaux = ["Radio", "Digital", "Print", "Affichage", "Télévision"];
 export default function Home() {
   return (
     <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", background: "#fff", color: "#1a1a2e" }}>
+      <AuthHashRedirect />
 
       {/* NAV */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid #e5e7eb", padding: "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: "64px" }}>
