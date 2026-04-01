@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 const canaux = ["Radio", "Digital", "Print", "Affichage", "TV"];
 const statuts = ["Planifié", "En cours", "Terminé", "Annulé"];
 
+type Emplacement = { id: string; nom: string; commune: string; statut: string };
+
 export default function PlanMediaForm({ clientId, onClose }: { clientId: string; onClose: () => void }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [emplacements, setEmplacements] = useState<Emplacement[]>([]);
   const [form, setForm] = useState({
     canal: "Radio",
     budget: "",
@@ -17,7 +20,14 @@ export default function PlanMediaForm({ clientId, onClose }: { clientId: string;
     date_fin: "",
     statut: "Planifié",
     notes: "",
+    emplacement_id: "",
   });
+
+  useEffect(() => {
+    fetch("/api/emplacements")
+      .then((r) => r.json())
+      .then((data) => { if (data.emplacements) setEmplacements(data.emplacements); });
+  }, []);
 
   const inputStyle = {
     width: "100%",
@@ -46,7 +56,11 @@ export default function PlanMediaForm({ clientId, onClose }: { clientId: string;
     const res = await fetch("/api/plans/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: clientId, ...form }),
+      body: JSON.stringify({
+        client_id: clientId,
+        ...form,
+        emplacement_id: form.emplacement_id || null,
+      }),
     });
 
     const data = await res.json();
@@ -58,6 +72,8 @@ export default function PlanMediaForm({ clientId, onClose }: { clientId: string;
       router.refresh();
     }
   }
+
+  const emplacementsAffichage = emplacements.filter((e) => e.statut !== "Non disponible");
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -75,7 +91,7 @@ export default function PlanMediaForm({ clientId, onClose }: { clientId: string;
 
             <div>
               <label style={labelStyle}>Canal *</label>
-              <select required style={inputStyle} value={form.canal} onChange={(e) => setForm({ ...form, canal: e.target.value })}>
+              <select required style={inputStyle} value={form.canal} onChange={(e) => setForm({ ...form, canal: e.target.value, emplacement_id: "" })}>
                 {canaux.map((c) => <option key={c}>{c}</option>)}
               </select>
             </div>
@@ -106,6 +122,30 @@ export default function PlanMediaForm({ clientId, onClose }: { clientId: string;
               <label style={labelStyle}>Notes</label>
               <input style={inputStyle} placeholder="Format, fréquence…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
+
+            {/* Emplacement — visible uniquement si canal Affichage */}
+            {form.canal === "Affichage" && (
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label style={labelStyle}>Emplacement physique</label>
+                <select
+                  style={inputStyle}
+                  value={form.emplacement_id}
+                  onChange={(e) => setForm({ ...form, emplacement_id: e.target.value })}
+                >
+                  <option value="">— Aucun emplacement sélectionné —</option>
+                  {emplacementsAffichage.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.nom} ({emp.commune}) — {emp.statut}
+                    </option>
+                  ))}
+                </select>
+                {emplacements.length === 0 && (
+                  <div style={{ fontSize: "11px", color: "#aaa", marginTop: "4px" }}>
+                    Aucun emplacement dans la base — ajoutez-en via la page Emplacements.
+                  </div>
+                )}
+              </div>
+            )}
 
           </div>
 

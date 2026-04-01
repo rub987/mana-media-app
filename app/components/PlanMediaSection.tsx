@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import PlanMediaForm from "./PlanMediaForm";
 import PlanComments from "./PlanComments";
 
+type Emplacement = { id: string; nom: string; commune: string; statut: string };
+
 const statutColor: Record<string, { bg: string; color: string }> = {
   "Planifié": { bg: "#dbeafe", color: "#1d4ed8" },
   "En cours": { bg: "#dcfce7", color: "#16a34a" },
@@ -31,6 +33,7 @@ type Plan = {
   date_fin: string;
   statut: string;
   notes: string;
+  emplacement_id?: string;
 };
 
 function formatDate(d: string) {
@@ -39,7 +42,7 @@ function formatDate(d: string) {
   return new Date(year, month - 1, day).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function EditModal({ plan, onClose }: { plan: Plan; onClose: () => void }) {
+function EditModal({ plan, emplacements, onClose }: { plan: Plan; emplacements: Emplacement[]; onClose: () => void }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -50,6 +53,7 @@ function EditModal({ plan, onClose }: { plan: Plan; onClose: () => void }) {
     date_fin: plan.date_fin?.slice(0, 10) || "",
     statut: plan.statut,
     notes: plan.notes || "",
+    emplacement_id: plan.emplacement_id || "",
   });
 
   const inputStyle = {
@@ -80,7 +84,7 @@ function EditModal({ plan, onClose }: { plan: Plan; onClose: () => void }) {
     const res = await fetch("/api/plans/update", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: plan.id, ...form }),
+      body: JSON.stringify({ id: plan.id, ...form, emplacement_id: form.emplacement_id || null }),
     });
 
     const data = await res.json();
@@ -131,6 +135,24 @@ function EditModal({ plan, onClose }: { plan: Plan; onClose: () => void }) {
               <label style={labelStyle}>Notes</label>
               <input style={inputStyle} placeholder="Format, fréquence…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
+
+            {form.canal === "Affichage" && (
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label style={labelStyle}>Emplacement physique</label>
+                <select
+                  style={inputStyle}
+                  value={form.emplacement_id}
+                  onChange={(e) => setForm({ ...form, emplacement_id: e.target.value })}
+                >
+                  <option value="">— Aucun emplacement —</option>
+                  {emplacements.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.nom} ({emp.commune}) — {emp.statut}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {error && (
@@ -160,6 +182,13 @@ export default function PlanMediaSection({ clientId, plans }: { clientId: string
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [commentPlan, setCommentPlan] = useState<Plan | null>(null);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
+  const [emplacements, setEmplacements] = useState<Emplacement[]>([]);
+
+  useEffect(() => {
+    fetch("/api/emplacements")
+      .then((r) => r.json())
+      .then((data) => { if (data.emplacements) setEmplacements(data.emplacements); });
+  }, []);
 
   useEffect(() => {
     if (plans.length === 0) return;
@@ -189,7 +218,7 @@ export default function PlanMediaSection({ clientId, plans }: { clientId: string
   return (
     <>
       {showCreate && <PlanMediaForm clientId={clientId} onClose={() => setShowCreate(false)} />}
-      {editPlan && <EditModal plan={editPlan} onClose={() => setEditPlan(null)} />}
+      {editPlan && <EditModal plan={editPlan} emplacements={emplacements} onClose={() => setEditPlan(null)} />}
       {commentPlan && (
         <PlanComments
           planId={commentPlan.id}
@@ -231,7 +260,14 @@ export default function PlanMediaSection({ clientId, plans }: { clientId: string
                   <td style={{ padding: "12px 16px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: canalColor[plan.canal] || "#aaa", flexShrink: 0 }} />
-                      <span style={{ fontWeight: 500 }}>{plan.canal}</span>
+                      <div>
+                        <span style={{ fontWeight: 500 }}>{plan.canal}</span>
+                        {plan.emplacement_id && emplacements.find((e) => e.id === plan.emplacement_id) && (
+                          <div style={{ fontSize: "11px", color: "#888" }}>
+                            📍 {emplacements.find((e) => e.id === plan.emplacement_id)?.nom}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td style={{ padding: "12px 16px" }}>{plan.budget ? `${Math.round(plan.budget / 1000)}k F` : "—"}</td>

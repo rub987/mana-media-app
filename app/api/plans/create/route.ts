@@ -6,7 +6,7 @@ import { createNotification } from "@/utils/createNotification";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { client_id, canal, budget, date_debut, date_fin, statut, notes } = body;
+  const { client_id, canal, budget, date_debut, date_fin, statut, notes, emplacement_id } = body;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -19,9 +19,17 @@ export async function POST(request: Request) {
     date_fin,
     statut: statut || "Planifié",
     notes: notes || "",
+    emplacement_id: emplacement_id || null,
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Mettre à jour le statut de l'emplacement automatiquement
+  if (emplacement_id) {
+    const planStatut = statut || "Planifié";
+    const newStatutEmplacement = (planStatut === "Terminé" || planStatut === "Annulé") ? "Disponible" : "Réservé";
+    await supabase.from("emplacements").update({ statut: newStatutEmplacement }).eq("id", emplacement_id);
+  }
 
   const { data: client } = await supabase.from("clients").select("nom").eq("id", client_id).single();
   // Envoyer email au client si il a un accès portail

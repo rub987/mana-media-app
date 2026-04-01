@@ -11,11 +11,16 @@ export async function DELETE(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
 
   // Récupérer les infos avant suppression
-  const { data: plan } = await supabase.from("plans_media").select("canal, client_id").eq("id", id).single();
+  const { data: plan } = await supabase.from("plans_media").select("canal, client_id, emplacement_id").eq("id", id).single();
   let clientNom = "";
   if (plan?.client_id) {
     const { data: client } = await supabase.from("clients").select("nom").eq("id", plan.client_id).single();
     clientNom = client?.nom || "";
+  }
+
+  // Libérer l'emplacement si le plan en avait un
+  if (plan?.emplacement_id) {
+    await supabase.from("emplacements").update({ statut: "Disponible" }).eq("id", plan.emplacement_id);
   }
 
   const { error } = await supabase.from("plans_media").delete().eq("id", id);

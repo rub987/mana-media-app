@@ -6,7 +6,7 @@ import { createNotification } from "@/utils/createNotification";
 
 export async function PUT(request: Request) {
   const body = await request.json();
-  const { id, canal, budget, date_debut, date_fin, statut, notes } = body;
+  const { id, canal, budget, date_debut, date_fin, statut, notes, emplacement_id } = body;
 
   if (!id) return NextResponse.json({ error: "ID manquant" }, { status: 400 });
 
@@ -24,12 +24,23 @@ export async function PUT(request: Request) {
       date_fin,
       statut: statut || "Planifié",
       notes: notes || "",
+      emplacement_id: emplacement_id || null,
     })
     .eq("id", id)
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Mettre à jour les statuts d'emplacements automatiquement
+  if (before?.emplacement_id && before.emplacement_id !== (emplacement_id || null)) {
+    // L'ancien emplacement est libéré
+    await supabase.from("emplacements").update({ statut: "Disponible" }).eq("id", before.emplacement_id);
+  }
+  if (emplacement_id) {
+    const newStatutEmplacement = (statut === "Terminé" || statut === "Annulé") ? "Disponible" : "Réservé";
+    await supabase.from("emplacements").update({ statut: newStatutEmplacement }).eq("id", emplacement_id);
+  }
 
   const { data: client } = await supabase.from("clients").select("nom").eq("id", data.client_id).single();
 
