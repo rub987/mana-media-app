@@ -10,6 +10,7 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: "📊" },
   { label: "Clients", href: "/clients", icon: "👥" },
   { label: "Plans médias", href: "/mediaplan", icon: "📅" },
+  { label: "Emplacements", href: "/emplacements", icon: "📍" },
   { label: "Reporting", href: "/reporting", icon: "📈" },
 ];
 
