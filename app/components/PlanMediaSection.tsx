@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PlanMediaForm from "./PlanMediaForm";
+import PlanComments from "./PlanComments";
 
 const statutColor: Record<string, { bg: string; color: string }> = {
   "Planifié": { bg: "#dbeafe", color: "#1d4ed8" },
@@ -157,6 +158,7 @@ export default function PlanMediaSection({ clientId, plans }: { clientId: string
   const [showCreate, setShowCreate] = useState(false);
   const [editPlan, setEditPlan] = useState<Plan | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [commentPlan, setCommentPlan] = useState<Plan | null>(null);
 
   async function handleDelete(id: string) {
     if (!confirm("Supprimer ce plan ? Cette action est irréversible.")) return;
@@ -179,6 +181,13 @@ export default function PlanMediaSection({ clientId, plans }: { clientId: string
     <>
       {showCreate && <PlanMediaForm clientId={clientId} onClose={() => setShowCreate(false)} />}
       {editPlan && <EditModal plan={editPlan} onClose={() => setEditPlan(null)} />}
+      {commentPlan && (
+        <PlanComments
+          planId={commentPlan.id}
+          planLabel={`${commentPlan.canal} · ${commentPlan.date_debut?.slice(0, 10)}`}
+          onClose={() => setCommentPlan(null)}
+        />
+      )}
 
       <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "16px" }}>
         <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -226,6 +235,13 @@ export default function PlanMediaSection({ clientId, plans }: { clientId: string
                   <td style={{ padding: "12px 16px", color: "#888" }}>{plan.notes || "—"}</td>
                   <td style={{ padding: "12px 16px" }}>
                     <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        onClick={() => setCommentPlan(plan)}
+                        style={{ padding: "4px 10px", border: "1px solid #d1d5db", borderRadius: "5px", fontSize: "11px", cursor: "pointer", background: "#fff", color: "#374151" }}
+                        title="Notes internes"
+                      >
+                        💬
+                      </button>
                       <button
                         onClick={() => setEditPlan(plan)}
                         style={{ padding: "4px 10px", border: "1px solid #d1d5db", borderRadius: "5px", fontSize: "11px", cursor: "pointer", background: "#fff", color: "#374151" }}
