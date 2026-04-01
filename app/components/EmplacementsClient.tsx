@@ -21,6 +21,7 @@ type Emplacement = {
   prix_semaine: number;
   prix_mois: number;
   prix_negocie: number;
+  prix_negocie_duree?: string;
   remise_longue_duree: number;
   notes: string;
   created_at?: string;
@@ -51,6 +52,7 @@ const EMPTY_FORM = {
   prix_semaine: "",
   prix_mois: "",
   prix_negocie: "",
+  prix_negocie_duree: "mois",
   remise_longue_duree: "0",
   notes: "",
 };
@@ -130,6 +132,7 @@ export default function EmplacementsClient() {
       prix_semaine: emp.prix_semaine ? String(emp.prix_semaine) : "",
       prix_mois: emp.prix_mois ? String(emp.prix_mois) : "",
       prix_negocie: emp.prix_negocie ? String(emp.prix_negocie) : "",
+      prix_negocie_duree: emp.prix_negocie_duree || "mois",
       remise_longue_duree: emp.remise_longue_duree ? String(emp.remise_longue_duree) : "0",
       notes: emp.notes || "",
     });
@@ -411,9 +414,15 @@ export default function EmplacementsClient() {
                         <label style={labelStyle}>Prix au mois</label>
                         <input style={inputStyle} type="number" placeholder="80 000" value={form.prix_mois} onChange={(e) => setForm({ ...form, prix_mois: e.target.value })} />
                       </div>
-                      <div>
+                      <div style={{ gridColumn: "1 / -1" }}>
                         <label style={labelStyle}>Prix négocié (optionnel)</label>
-                        <input style={inputStyle} type="number" placeholder="Tarif spécial client" value={form.prix_negocie} onChange={(e) => setForm({ ...form, prix_negocie: e.target.value })} />
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <input style={{ ...inputStyle, flex: 1 }} type="number" placeholder="Tarif spécial client" value={form.prix_negocie} onChange={(e) => setForm({ ...form, prix_negocie: e.target.value })} />
+                          <select style={{ ...inputStyle, width: "140px", flexShrink: 0 }} value={form.prix_negocie_duree} onChange={(e) => setForm({ ...form, prix_negocie_duree: e.target.value })}>
+                            <option value="semaine">par semaine</option>
+                            <option value="mois">par mois</option>
+                          </select>
+                        </div>
                       </div>
                       <div>
                         <label style={labelStyle}>Remise longue durée (%)</label>

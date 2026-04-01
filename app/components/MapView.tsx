@@ -19,6 +19,7 @@ type Emplacement = {
   prix_semaine: number;
   prix_mois: number;
   prix_negocie: number;
+  prix_negocie_duree?: string;
   remise_longue_duree: number;
   notes: string;
   created_at?: string;
@@ -127,7 +128,7 @@ export default function MapView({
                     </div>
                   )}
                   {emp.prix_negocie && (
-                    <div style={{ color: "#7c3aed" }}>Négocié : <strong>{emp.prix_negocie.toLocaleString("fr-FR")} F</strong></div>
+                    <div style={{ color: "#7c3aed" }}>Négocié : <strong>{emp.prix_negocie.toLocaleString("fr-FR")} F</strong> / {emp.prix_negocie_duree || "mois"}</div>
                   )}
                 </div>
               )}
