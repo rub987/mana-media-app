@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 
 const canaux_options = ["Radio", "Digital", "Print", "Affichage", "TV"];
 
 export default function NouveauClient() {
+  return (
+    <Suspense fallback={null}>
+      <NouveauClientForm />
+    </Suspense>
+  );
+}
+
+function NouveauClientForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
