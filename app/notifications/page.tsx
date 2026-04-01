@@ -30,6 +30,13 @@ function formatDate(d: string) {
   });
 }
 
+function getLeadUrl(title: string, body: string | null): string {
+  const nom = title.replace("Nouveau contact — ", "");
+  const email = body?.split(" : ")[0] || "";
+  const message = body?.split(" : ").slice(1).join(" : ") || "";
+  return `/nouveau-client?nom=${encodeURIComponent(nom)}&email=${encodeURIComponent(email)}&message=${encodeURIComponent(message)}`;
+}
+
 export default async function NotificationsPage() {
   const supabase = await createClient();
   const { data: notifs } = await supabase
@@ -106,17 +113,11 @@ export default async function NotificationsPage() {
                           </span>
                           <div style={{ fontSize: "13px", fontWeight: 600, color: "#1a1a2e", marginTop: "2px" }}>{n.title}</div>
                           {n.body && <div style={{ fontSize: "12px", color: "#888", marginTop: "3px", lineHeight: 1.5 }}>{n.body}</div>}
-                          {n.type === "contact" && (() => {
-                            const nom = n.title.replace("Nouveau contact — ", "");
-                            const email = n.body?.split(" : ")[0] || "";
-                            const message = n.body?.split(" : ").slice(1).join(" : ") || "";
-                            const url = `/nouveau-client?nom=${encodeURIComponent(nom)}&email=${encodeURIComponent(email)}&message=${encodeURIComponent(message)}`;
-                            return (
-                              <Link href={url} style={{ display: "inline-block", marginTop: "8px", padding: "4px 12px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "11px", fontWeight: 600, textDecoration: "none" }}>
-                                → Créer le client
-                              </Link>
-                            );
-                          })()}
+                          {n.type === "contact" && (
+                            <Link href={getLeadUrl(n.title, n.body)} style={{ display: "inline-block", marginTop: "8px", padding: "4px 12px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "11px", fontWeight: 600, textDecoration: "none" }}>
+                              → Créer le client
+                            </Link>
+                          )}
                         </div>
                         <div style={{ fontSize: "11px", color: "#bbb", whiteSpace: "nowrap", flexShrink: 0 }}>
                           {new Date(n.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
