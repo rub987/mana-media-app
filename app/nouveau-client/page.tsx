@@ -22,7 +22,8 @@ function NouveauClientForm() {
 
   const [form, setForm] = useState({
     nom: searchParams.get("nom") || "",
-    secteur: "",
+    secteur: searchParams.get("secteur") || "",
+    ile: searchParams.get("ile") || "",
     offre: "PERFORMANCE",
     budget_mensuel: "",
     contrat: "6 mois",
@@ -132,7 +133,8 @@ function NouveauClientForm() {
                 </div>
                 <div>
                   <label style={labelStyle}>Île / Localisation</label>
-                  <select style={inputStyle}>
+                  <select style={inputStyle} value={form.ile || ""} onChange={(e) => setForm({ ...form, ile: e.target.value })}>
+                    <option value="">— Choisir —</option>
                     <option>Tahiti</option>
                     <option>Moorea</option>
                     <option>Bora Bora</option>

@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Trop de messages envoyés. Réessayez dans une heure." }, { status: 429 });
   }
 
-  const { entreprise, contact_nom, email, tel, message, website } = await request.json();
+  const { entreprise, contact_nom, email, tel, secteur, ile, message, website } = await request.json();
 
   // Honeypot — si le champ "website" est rempli, c'est un bot
   if (website) {
@@ -53,6 +53,8 @@ export async function POST(request: Request) {
             ${contact_nom ? `<tr><td style="color: #888; padding: 8px 0; border-bottom: 1px solid #f5f5f5;">Contact</td><td style="font-weight: 600; color: #1a1a2e; padding: 8px 0; border-bottom: 1px solid #f5f5f5;">${contact_nom}</td></tr>` : ""}
             <tr><td style="color: #888; padding: 8px 0; border-bottom: 1px solid #f5f5f5;">Email</td><td style="font-weight: 600; color: #7b9fff; padding: 8px 0; border-bottom: 1px solid #f5f5f5;"><a href="mailto:${email}" style="color: #7b9fff;">${email}</a></td></tr>
             ${tel ? `<tr><td style="color: #888; padding: 8px 0; border-bottom: 1px solid #f5f5f5;">Téléphone</td><td style="font-weight: 600; color: #1a1a2e; padding: 8px 0; border-bottom: 1px solid #f5f5f5;"><a href="tel:${tel}" style="color: #1a1a2e;">${tel}</a></td></tr>` : ""}
+            ${secteur ? `<tr><td style="color: #888; padding: 8px 0; border-bottom: 1px solid #f5f5f5;">Secteur</td><td style="font-weight: 600; color: #1a1a2e; padding: 8px 0; border-bottom: 1px solid #f5f5f5;">${secteur}</td></tr>` : ""}
+            ${ile ? `<tr><td style="color: #888; padding: 8px 0; border-bottom: 1px solid #f5f5f5;">Île</td><td style="font-weight: 600; color: #1a1a2e; padding: 8px 0; border-bottom: 1px solid #f5f5f5;">${ile}</td></tr>` : ""}
           </table>
           <div style="margin-top: 20px; background: #f5f6fa; border-radius: 8px; padding: 16px;">
             <p style="font-size: 12px; color: #888; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px;">Message</p>
@@ -66,7 +68,7 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // body encodé avec || comme séparateur pour parsing côté notifications
-  const bodyParts = [email, contact_nom || "", tel || "", message.slice(0, 100)];
+  const bodyParts = [email, contact_nom || "", tel || "", secteur || "", ile || "", message.slice(0, 100)];
   await createNotification({
     type: "contact",
     title: `Nouveau contact — ${entreprise}`,

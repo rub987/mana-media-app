@@ -30,26 +30,26 @@ function formatDate(d: string) {
   });
 }
 
-function parseContactBody(body: string | null): { email: string; contact_nom: string; tel: string; message: string } {
-  if (!body) return { email: "", contact_nom: "", tel: "", message: "" };
+function parseContactBody(body: string | null) {
+  if (!body) return { email: "", contact_nom: "", tel: "", secteur: "", ile: "", message: "" };
   if (body.includes("||")) {
-    const [email, contact_nom, tel, message] = body.split("||");
-    return { email: email || "", contact_nom: contact_nom || "", tel: tel || "", message: message || "" };
+    const [email, contact_nom, tel, secteur, ile, message] = body.split("||");
+    return { email: email || "", contact_nom: contact_nom || "", tel: tel || "", secteur: secteur || "", ile: ile || "", message: message || "" };
   }
   // ancien format : "email : message"
   const [email, ...rest] = body.split(" : ");
-  return { email: email || "", contact_nom: "", tel: "", message: rest.join(" : ") };
+  return { email: email || "", contact_nom: "", tel: "", secteur: "", ile: "", message: rest.join(" : ") };
 }
 
 function getLeadUrl(title: string, body: string | null): string {
   const nom = title.replace("Nouveau contact — ", "");
-  const { email, contact_nom, tel, message } = parseContactBody(body);
-  return `/nouveau-client?nom=${encodeURIComponent(nom)}&email=${encodeURIComponent(email)}&contact_nom=${encodeURIComponent(contact_nom)}&tel=${encodeURIComponent(tel)}&message=${encodeURIComponent(message)}`;
+  const { email, contact_nom, tel, secteur, ile, message } = parseContactBody(body);
+  return `/nouveau-client?nom=${encodeURIComponent(nom)}&email=${encodeURIComponent(email)}&contact_nom=${encodeURIComponent(contact_nom)}&tel=${encodeURIComponent(tel)}&secteur=${encodeURIComponent(secteur)}&ile=${encodeURIComponent(ile)}&message=${encodeURIComponent(message)}`;
 }
 
 function displayContactBody(body: string | null): string {
-  const { email, contact_nom, tel, message } = parseContactBody(body);
-  const parts = [contact_nom, email, tel].filter(Boolean).join(" · ");
+  const { email, contact_nom, tel, secteur, ile, message } = parseContactBody(body);
+  const parts = [contact_nom, email, tel, secteur, ile].filter(Boolean).join(" · ");
   return message ? `${parts} : ${message}` : parts;
 }
 

@@ -14,7 +14,7 @@ const inputStyle = {
 };
 
 export default function ContactForm() {
-  const [form, setForm] = useState({ entreprise: "", contact_nom: "", email: "", tel: "", message: "", website: "" }); // website = honeypot
+  const [form, setForm] = useState({ entreprise: "", contact_nom: "", email: "", tel: "", secteur: "", ile: "", message: "", website: "" }); // website = honeypot
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -27,7 +27,7 @@ export default function ContactForm() {
     const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entreprise: form.entreprise, contact_nom: form.contact_nom, email: form.email, tel: form.tel, message: form.message, website: form.website }),
+      body: JSON.stringify({ entreprise: form.entreprise, contact_nom: form.contact_nom, email: form.email, tel: form.tel, secteur: form.secteur, ile: form.ile, message: form.message, website: form.website }),
     });
     const data = await res.json();
     setLoading(false);
@@ -104,6 +104,33 @@ export default function ContactForm() {
               onChange={(e) => setForm({ ...form, tel: e.target.value })}
               style={inputStyle}
             />
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Secteur d'activité</label>
+            <select value={form.secteur} onChange={(e) => setForm({ ...form, secteur: e.target.value })} style={inputStyle}>
+              <option value="">— Choisir —</option>
+              <option>Tourisme / Hébergement</option>
+              <option>Retail / Commerce</option>
+              <option>Automobile</option>
+              <option>Institutionnel</option>
+              <option>Restauration</option>
+              <option>Immobilier</option>
+              <option>Santé</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Île / Localisation</label>
+            <select value={form.ile} onChange={(e) => setForm({ ...form, ile: e.target.value })} style={inputStyle}>
+              <option value="">— Choisir —</option>
+              <option>Tahiti</option>
+              <option>Moorea</option>
+              <option>Bora Bora</option>
+              <option>Raiatea</option>
+              <option>Autre</option>
+            </select>
           </div>
         </div>
         <div>
