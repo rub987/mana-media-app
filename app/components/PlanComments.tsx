@@ -26,10 +26,12 @@ export default function PlanComments({
   planId,
   planLabel,
   onClose,
+  onCountChange,
 }: {
   planId: string;
   planLabel: string;
   onClose: () => void;
+  onCountChange?: (planId: string, delta: number) => void;
 }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +65,7 @@ export default function PlanComments({
     if (data.comment) {
       setComments((prev) => [...prev, data.comment]);
       setContenu("");
+      onCountChange?.(planId, +1);
     }
     setSending(false);
   }
@@ -74,6 +77,7 @@ export default function PlanComments({
       body: JSON.stringify({ id }),
     });
     setComments((prev) => prev.filter((c) => c.id !== id));
+    onCountChange?.(planId, -1);
   }
 
   return (

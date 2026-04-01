@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import PlanMediaForm from "./PlanMediaForm";
 import PlanComments from "./PlanComments";
@@ -159,6 +159,15 @@ export default function PlanMediaSection({ clientId, plans }: { clientId: string
   const [editPlan, setEditPlan] = useState<Plan | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [commentPlan, setCommentPlan] = useState<Plan | null>(null);
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (plans.length === 0) return;
+    const ids = plans.map((p) => p.id).join(",");
+    fetch(`/api/plan-comments?plan_ids=${ids}`)
+      .then((r) => r.json())
+      .then((data) => { if (data.counts) setCommentCounts(data.counts); });
+  }, [plans]);
 
   async function handleDelete(id: string) {
     if (!confirm("Supprimer ce plan ? Cette action est irréversible.")) return;
@@ -186,6 +195,7 @@ export default function PlanMediaSection({ clientId, plans }: { clientId: string
           planId={commentPlan.id}
           planLabel={`${commentPlan.canal} · ${commentPlan.date_debut?.slice(0, 10)}`}
           onClose={() => setCommentPlan(null)}
+          onCountChange={(planId, delta) => setCommentCounts((prev) => ({ ...prev, [planId]: Math.max(0, (prev[planId] || 0) + delta) }))}
         />
       )}
 
@@ -237,10 +247,14 @@ export default function PlanMediaSection({ clientId, plans }: { clientId: string
                     <div style={{ display: "flex", gap: "6px" }}>
                       <button
                         onClick={() => setCommentPlan(plan)}
-                        style={{ padding: "4px 10px", border: "1px solid #d1d5db", borderRadius: "5px", fontSize: "11px", cursor: "pointer", background: "#fff", color: "#374151" }}
+                        style={{ padding: "4px 10px", border: "1px solid #d1d5db", borderRadius: "5px", fontSize: "11px", cursor: "pointer", background: "#fff", color: "#374151", position: "relative" }}
                         title="Notes internes"
                       >
-                        💬
+                        💬{commentCounts[plan.id] > 0 && (
+                          <span style={{ marginLeft: "4px", background: "#7b9fff", color: "#fff", borderRadius: "10px", fontSize: "10px", fontWeight: 700, padding: "1px 5px" }}>
+                            {commentCounts[plan.id]}
+                          </span>
+                        )}
                       </button>
                       <button
                         onClick={() => setEditPlan(plan)}
