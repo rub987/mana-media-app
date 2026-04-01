@@ -30,11 +30,27 @@ function formatDate(d: string) {
   });
 }
 
+function parseContactBody(body: string | null): { email: string; contact_nom: string; tel: string; message: string } {
+  if (!body) return { email: "", contact_nom: "", tel: "", message: "" };
+  if (body.includes("||")) {
+    const [email, contact_nom, tel, message] = body.split("||");
+    return { email: email || "", contact_nom: contact_nom || "", tel: tel || "", message: message || "" };
+  }
+  // ancien format : "email : message"
+  const [email, ...rest] = body.split(" : ");
+  return { email: email || "", contact_nom: "", tel: "", message: rest.join(" : ") };
+}
+
 function getLeadUrl(title: string, body: string | null): string {
   const nom = title.replace("Nouveau contact — ", "");
-  const email = body?.split(" : ")[0] || "";
-  const message = body?.split(" : ").slice(1).join(" : ") || "";
-  return `/nouveau-client?nom=${encodeURIComponent(nom)}&email=${encodeURIComponent(email)}&message=${encodeURIComponent(message)}`;
+  const { email, contact_nom, tel, message } = parseContactBody(body);
+  return `/nouveau-client?nom=${encodeURIComponent(nom)}&email=${encodeURIComponent(email)}&contact_nom=${encodeURIComponent(contact_nom)}&tel=${encodeURIComponent(tel)}&message=${encodeURIComponent(message)}`;
+}
+
+function displayContactBody(body: string | null): string {
+  const { email, contact_nom, tel, message } = parseContactBody(body);
+  const parts = [contact_nom, email, tel].filter(Boolean).join(" · ");
+  return message ? `${parts} : ${message}` : parts;
 }
 
 export default async function NotificationsPage() {
@@ -112,7 +128,11 @@ export default async function NotificationsPage() {
                             {typeLabel[n.type] || n.type}
                           </span>
                           <div style={{ fontSize: "13px", fontWeight: 600, color: "#1a1a2e", marginTop: "2px" }}>{n.title}</div>
-                          {n.body && <div style={{ fontSize: "12px", color: "#888", marginTop: "3px", lineHeight: 1.5 }}>{n.body}</div>}
+                          {n.body && (
+                            <div style={{ fontSize: "12px", color: "#888", marginTop: "3px", lineHeight: 1.5 }}>
+                              {n.type === "contact" ? displayContactBody(n.body) : n.body}
+                            </div>
+                          )}
                           {n.type === "contact" && (
                             <Link href={getLeadUrl(n.title, n.body)} style={{ display: "inline-block", marginTop: "8px", padding: "4px 12px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "11px", fontWeight: 600, textDecoration: "none" }}>
                               → Créer le client

@@ -14,7 +14,7 @@ const inputStyle = {
 };
 
 export default function ContactForm() {
-  const [form, setForm] = useState({ entreprise: "", email: "", message: "", website: "" }); // website = honeypot
+  const [form, setForm] = useState({ entreprise: "", contact_nom: "", email: "", tel: "", message: "", website: "" }); // website = honeypot
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -27,7 +27,7 @@ export default function ContactForm() {
     const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entreprise: form.entreprise, email: form.email, message: form.message, website: form.website }),
+      body: JSON.stringify({ entreprise: form.entreprise, contact_nom: form.contact_nom, email: form.email, tel: form.tel, message: form.message, website: form.website }),
     });
     const data = await res.json();
     setLoading(false);
@@ -75,15 +75,36 @@ export default function ContactForm() {
           />
         </div>
         <div>
-          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Email</label>
+          <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Nom du contact</label>
           <input
-            type="email"
-            required
-            placeholder="contact@votreentreprise.pf"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="Prénom Nom"
+            value={form.contact_nom}
+            onChange={(e) => setForm({ ...form, contact_nom: e.target.value })}
             style={inputStyle}
           />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Email</label>
+            <input
+              type="email"
+              required
+              placeholder="contact@votreentreprise.pf"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Téléphone</label>
+            <input
+              type="tel"
+              placeholder="+689 …"
+              value={form.tel}
+              onChange={(e) => setForm({ ...form, tel: e.target.value })}
+              style={inputStyle}
+            />
+          </div>
         </div>
         <div>
           <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "5px" }}>Message</label>

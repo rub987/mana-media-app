@@ -27,9 +27,9 @@ function NouveauClientForm() {
     budget_mensuel: "",
     contrat: "6 mois",
     canaux: [] as string[],
-    contact_nom: "",
+    contact_nom: searchParams.get("contact_nom") || "",
     contact_email: searchParams.get("email") || "",
-    contact_tel: "",
+    contact_tel: searchParams.get("tel") || "",
     notes: searchParams.get("message") ? `Message initial : ${searchParams.get("message")}` : "",
   });
 
