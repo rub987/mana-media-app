@@ -1,5 +1,6 @@
 import Sidebar from "../components/Sidebar";
 import { createClient } from "@/utils/supabase/server";
+import Link from "next/link";
 
 export const revalidate = 0;
 
@@ -99,12 +100,23 @@ export default async function NotificationsPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
-                        <div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <span style={{ fontSize: "11px", fontWeight: 600, color: "#7b9fff", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                             {typeLabel[n.type] || n.type}
                           </span>
                           <div style={{ fontSize: "13px", fontWeight: 600, color: "#1a1a2e", marginTop: "2px" }}>{n.title}</div>
                           {n.body && <div style={{ fontSize: "12px", color: "#888", marginTop: "3px", lineHeight: 1.5 }}>{n.body}</div>}
+                          {n.type === "contact" && (() => {
+                            const nom = n.title.replace("Nouveau contact — ", "");
+                            const email = n.body?.split(" : ")[0] || "";
+                            const message = n.body?.split(" : ").slice(1).join(" : ") || "";
+                            const url = `/nouveau-client?nom=${encodeURIComponent(nom)}&email=${encodeURIComponent(email)}&message=${encodeURIComponent(message)}`;
+                            return (
+                              <Link href={url} style={{ display: "inline-block", marginTop: "8px", padding: "4px 12px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "11px", fontWeight: 600, textDecoration: "none" }}>
+                                → Créer le client
+                              </Link>
+                            );
+                          })()}
                         </div>
                         <div style={{ fontSize: "11px", color: "#bbb", whiteSpace: "nowrap", flexShrink: 0 }}>
                           {new Date(n.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}

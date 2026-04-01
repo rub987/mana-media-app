@@ -154,6 +154,17 @@ export default function NotifBell() {
                   <div style={{ fontSize: "12px", fontWeight: 600, color: "#1a1a2e", marginBottom: "2px" }}>{n.title}</div>
                   {n.body && <div style={{ fontSize: "11px", color: "#888", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.body}</div>}
                   <div style={{ fontSize: "10px", color: "#bbb", marginTop: "3px" }}>{timeAgo(n.created_at)}</div>
+                  {n.type === "contact" && (() => {
+                    const nom = n.title.replace("Nouveau contact — ", "");
+                    const email = n.body?.split(" : ")[0] || "";
+                    const message = n.body?.split(" : ").slice(1).join(" : ") || "";
+                    const url = `/nouveau-client?nom=${encodeURIComponent(nom)}&email=${encodeURIComponent(email)}&message=${encodeURIComponent(message)}`;
+                    return (
+                      <Link href={url} onClick={() => setOpen(false)} style={{ display: "inline-block", marginTop: "6px", padding: "3px 10px", background: "#1a1a2e", color: "#fff", borderRadius: "5px", fontSize: "10px", fontWeight: 600, textDecoration: "none" }}>
+                        → Créer le client
+                      </Link>
+                    );
+                  })()}
                 </div>
                 {!n.read && <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#7b9fff", flexShrink: 0, marginTop: "5px" }} />}
               </div>

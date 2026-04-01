@@ -1,27 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 
 const canaux_options = ["Radio", "Digital", "Print", "Affichage", "TV"];
 
 export default function NouveauClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
-    nom: "",
+    nom: searchParams.get("nom") || "",
     secteur: "",
     offre: "PERFORMANCE",
     budget_mensuel: "",
     contrat: "6 mois",
     canaux: [] as string[],
     contact_nom: "",
-    contact_email: "",
+    contact_email: searchParams.get("email") || "",
     contact_tel: "",
-    notes: "",
+    notes: searchParams.get("message") ? `Message initial : ${searchParams.get("message")}` : "",
   });
 
   function toggleCanal(canal: string) {
@@ -90,6 +91,11 @@ export default function NouveauClient() {
         </div>
 
         <div style={{ padding: "24px 28px", maxWidth: "720px" }}>
+          {searchParams.get("nom") && (
+            <div style={{ background: "#f0f4ff", border: "1px solid #c7d7fe", borderRadius: "8px", padding: "12px 16px", marginBottom: "16px", fontSize: "13px", color: "#1d4ed8", display: "flex", alignItems: "center", gap: "8px" }}>
+              ✉️ <span>Pré-rempli depuis un lead : <strong>{searchParams.get("nom")}</strong></span>
+            </div>
+          )}
           <form onSubmit={handleSubmit}>
 
             {/* Infos entreprise */}
