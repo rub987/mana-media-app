@@ -132,7 +132,7 @@ export default async function Portal() {
         </div>
 
         {/* KPIs */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
+        <div className="grid-4col" style={{ marginBottom: "24px" }}>
           {[
             { label: "Offre", value: client.offre, color: "#7b9fff" },
             { label: "Budget mensuel", value: fmt(client.budget_mensuel || 0), color: "#34d399" },
@@ -227,7 +227,7 @@ export default async function Portal() {
 
         {/* Reporting — Budget par canal + Budget par mois */}
         {allPlans.length > 0 && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+          <div className="grid-2col">
 
             {/* Budget par canal */}
             {budgetTotal > 0 && (
@@ -285,7 +285,7 @@ export default async function Portal() {
         )}
 
         {/* Infos entreprise + Contact agence */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+        <div className="grid-2col">
 
           {/* Fiche entreprise */}
           <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>

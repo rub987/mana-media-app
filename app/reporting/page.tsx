@@ -91,22 +91,22 @@ export default async function Reporting() {
   ];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="app-layout">
       <Sidebar />
 
-      <main style={{ flex: 1, background: "#f5f6fa", overflowY: "auto" }}>
+      <main className="app-main">
         {/* Header */}
-        <div style={{ background: "#fff", padding: "20px 28px", borderBottom: "1px solid #e5e7eb" }}>
+        <div className="page-header">
           <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Reporting</h1>
           <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>
             Vue globale — {allClients.length} clients · {allPlans.length} plans médias
           </p>
         </div>
 
-        <div style={{ padding: "24px 28px" }}>
+        <div className="page-content">
 
           {/* KPIs */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
+          <div className="grid-4col" style={{ marginBottom: "24px" }}>
             {kpis.map((k) => (
               <div key={k.label} style={{ background: "#fff", borderRadius: "10px", padding: "18px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
                 <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>{k.label}</div>
@@ -116,7 +116,7 @@ export default async function Reporting() {
             ))}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+          <div className="grid-2col">
 
             {/* Budget par canal */}
             <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "20px" }}>

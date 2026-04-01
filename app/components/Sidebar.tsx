@@ -32,7 +32,6 @@ function getInitials(email: string, displayName?: string): string {
 function getDisplayName(email: string, metadata?: Record<string, string>): string {
   if (metadata?.full_name) return metadata.full_name;
   if (metadata?.name) return metadata.name;
-  // Utilise la partie avant le @ comme nom
   return email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
@@ -49,6 +48,7 @@ export default function Sidebar() {
   const [userEmail, setUserEmail] = useState<string>("");
   const [displayName, setDisplayName] = useState<string>("");
   const [initials, setInitials] = useState<string>("…");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -69,97 +69,121 @@ export default function Sidebar() {
     router.refresh();
   }
 
+  function closeMenu() {
+    setMobileOpen(false);
+  }
+
   return (
-    <aside style={{
-      width: "220px",
-      minHeight: "100vh",
-      background: "#1a1a2e",
-      display: "flex",
-      flexDirection: "column",
-      flexShrink: 0,
-    }}>
-      {/* Logo */}
-      <div style={{ padding: "20px", borderBottom: "1px solid #2a2a4e" }}>
-        <div style={{ fontSize: "18px", fontWeight: 700, color: "#fff", letterSpacing: "1px" }}>
-          MANA MEDIA
-        </div>
-        <div style={{ fontSize: "10px", color: "#888", letterSpacing: "2px", marginTop: "2px" }}>
-          PILOTAGE REDSOYU
-        </div>
-      </div>
-
-      {/* Nav */}
-      <nav style={{ padding: "16px 0", flex: 1 }}>
-        <div style={{ padding: "8px 20px 4px", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1.5px", color: "#555" }}>
-          Navigation
-        </div>
-        {navItems.map((item) => (
-          <Link key={item.href} href={item.href} style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            padding: "10px 20px",
-            color: pathname === item.href ? "#fff" : "#aaa",
-            textDecoration: "none",
-            fontSize: "13px",
-            background: pathname === item.href ? "#2a2a4e" : "transparent",
-            borderLeft: pathname === item.href ? "3px solid #7b9fff" : "3px solid transparent",
-          }}>
-            <span>{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
-
-        <div style={{ padding: "16px 20px 4px", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1.5px", color: "#555" }}>
-          Admin
-        </div>
-        <NotifBell />
-        {adminItems.map((item) => (
-          <Link key={item.href} href={item.href} style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            padding: "10px 20px",
-            color: pathname === item.href ? "#fff" : "#aaa",
-            textDecoration: "none",
-            fontSize: "13px",
-            background: pathname === item.href ? "#2a2a4e" : "transparent",
-            borderLeft: pathname === item.href ? "3px solid #7b9fff" : "3px solid transparent",
-          }}>
-            <span>{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-
-      {/* User block */}
-      <div style={{ margin: "0 12px 4px", padding: "10px 12px", background: "#2a2a4e", borderRadius: "8px", display: "flex", alignItems: "center", gap: "10px" }}>
-        <div style={{
-          width: "32px", height: "32px",
-          background: "linear-gradient(135deg, #7b9fff, #a78bfa)",
-          borderRadius: "50%",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color: "#fff", fontWeight: 700, fontSize: "12px",
-          flexShrink: 0,
-          letterSpacing: "0.5px",
-        }}>
-          {initials}
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: "12px", color: "#fff", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {displayName || "…"}
-          </div>
-          <div style={{ fontSize: "10px", color: "#888", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {userEmail || "…"}
-          </div>
-        </div>
-      </div>
-      <Link href="/" style={{ margin: "0 12px 4px", padding: "8px 12px", background: "transparent", border: "1px solid #2a2a4e", borderRadius: "8px", color: "#666", fontSize: "12px", cursor: "pointer", textAlign: "left", textDecoration: "none", display: "block" }}>
-        🌐 Page d'accueil
-      </Link>
-      <button onClick={handleLogout} style={{ margin: "0 12px 12px", padding: "8px 12px", background: "transparent", border: "1px solid #2a2a4e", borderRadius: "8px", color: "#666", fontSize: "12px", cursor: "pointer", textAlign: "left" }}>
-        🚪 Déconnexion
+    <>
+      {/* Hamburger button — visible only on mobile via CSS */}
+      <button
+        className="hamburger-btn"
+        onClick={() => setMobileOpen(true)}
+        aria-label="Ouvrir le menu"
+      >
+        ☰
       </button>
-    </aside>
+
+      {/* Overlay — closes sidebar on tap */}
+      <div
+        className={`sidebar-overlay${mobileOpen ? " is-open" : ""}`}
+        onClick={closeMenu}
+      />
+
+      {/* Sidebar wrapper */}
+      <div className={`sidebar-wrap${mobileOpen ? " is-open" : ""}`}>
+        <aside style={{
+          width: "220px",
+          minHeight: "100vh",
+          background: "#1a1a2e",
+          display: "flex",
+          flexDirection: "column",
+          flexShrink: 0,
+        }}>
+          {/* Logo */}
+          <div style={{ padding: "20px", borderBottom: "1px solid #2a2a4e" }}>
+            <div style={{ fontSize: "18px", fontWeight: 700, color: "#fff", letterSpacing: "1px" }}>
+              MANA MEDIA
+            </div>
+            <div style={{ fontSize: "10px", color: "#888", letterSpacing: "2px", marginTop: "2px" }}>
+              PILOTAGE REDSOYU
+            </div>
+          </div>
+
+          {/* Nav */}
+          <nav style={{ padding: "16px 0", flex: 1 }}>
+            <div style={{ padding: "8px 20px 4px", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1.5px", color: "#555" }}>
+              Navigation
+            </div>
+            {navItems.map((item) => (
+              <Link key={item.href} href={item.href} onClick={closeMenu} style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                padding: "10px 20px",
+                color: pathname === item.href ? "#fff" : "#aaa",
+                textDecoration: "none",
+                fontSize: "13px",
+                background: pathname === item.href ? "#2a2a4e" : "transparent",
+                borderLeft: pathname === item.href ? "3px solid #7b9fff" : "3px solid transparent",
+              }}>
+                <span>{item.icon}</span>
+                {item.label}
+              </Link>
+            ))}
+
+            <div style={{ padding: "16px 20px 4px", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1.5px", color: "#555" }}>
+              Admin
+            </div>
+            <NotifBell />
+            {adminItems.map((item) => (
+              <Link key={item.href} href={item.href} onClick={closeMenu} style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                padding: "10px 20px",
+                color: pathname === item.href ? "#fff" : "#aaa",
+                textDecoration: "none",
+                fontSize: "13px",
+                background: pathname === item.href ? "#2a2a4e" : "transparent",
+                borderLeft: pathname === item.href ? "3px solid #7b9fff" : "3px solid transparent",
+              }}>
+                <span>{item.icon}</span>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* User block */}
+          <div style={{ margin: "0 12px 4px", padding: "10px 12px", background: "#2a2a4e", borderRadius: "8px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{
+              width: "32px", height: "32px",
+              background: "linear-gradient(135deg, #7b9fff, #a78bfa)",
+              borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontWeight: 700, fontSize: "12px",
+              flexShrink: 0,
+              letterSpacing: "0.5px",
+            }}>
+              {initials}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: "12px", color: "#fff", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {displayName || "…"}
+              </div>
+              <div style={{ fontSize: "10px", color: "#888", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {userEmail || "…"}
+              </div>
+            </div>
+          </div>
+          <Link href="/" onClick={closeMenu} style={{ margin: "0 12px 4px", padding: "8px 12px", background: "transparent", border: "1px solid #2a2a4e", borderRadius: "8px", color: "#666", fontSize: "12px", cursor: "pointer", textAlign: "left", textDecoration: "none", display: "block" }}>
+            🌐 Page d'accueil
+          </Link>
+          <button onClick={handleLogout} style={{ margin: "0 12px 12px", padding: "8px 12px", background: "transparent", border: "1px solid #2a2a4e", borderRadius: "8px", color: "#666", fontSize: "12px", cursor: "pointer", textAlign: "left" }}>
+            🚪 Déconnexion
+          </button>
+        </aside>
+      </div>
+    </>
   );
 }

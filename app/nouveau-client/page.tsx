@@ -85,11 +85,11 @@ function NouveauClientForm() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="app-layout">
       <Sidebar />
 
-      <main style={{ flex: 1, background: "#f5f6fa", overflowY: "auto" }}>
-        <div style={{ background: "#fff", padding: "20px 28px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <main className="app-main">
+        <div className="page-header">
           <div>
             <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Nouveau client</h1>
             <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Crée la fiche dans Supabase et ZOHO simultanément</p>
@@ -99,7 +99,7 @@ function NouveauClientForm() {
           </button>
         </div>
 
-        <div style={{ padding: "24px 28px", maxWidth: "720px" }}>
+        <div className="page-content" style={{ maxWidth: "720px" }}>
           {searchParams.get("nom") && (
             <div style={{ background: "#f0f4ff", border: "1px solid #c7d7fe", borderRadius: "8px", padding: "12px 16px", marginBottom: "16px", fontSize: "13px", color: "#1d4ed8", display: "flex", alignItems: "center", gap: "8px" }}>
               ✉️ <span>Pré-rempli depuis un lead : <strong>{searchParams.get("nom")}</strong></span>

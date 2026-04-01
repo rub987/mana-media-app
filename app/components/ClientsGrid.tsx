@@ -117,7 +117,7 @@ export default function ClientsGrid({ clients }: { clients: Client[] }) {
       </div>
 
       {/* Grille */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+      <div className="grid-3col">
         {filtered.length === 0 ? (
           <div style={{ gridColumn: "1 / -1", padding: "48px", textAlign: "center", background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", color: "#aaa", fontSize: "13px" }}>
             Aucun client ne correspond à cette recherche.

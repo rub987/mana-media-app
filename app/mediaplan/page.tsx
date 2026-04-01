@@ -105,19 +105,19 @@ export default async function MediaPlan() {
   })();
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="app-layout">
       <Sidebar />
 
-      <main style={{ flex: 1, background: "#f5f6fa", overflowY: "auto" }}>
+      <main className="app-main">
         {/* Header */}
-        <div style={{ background: "#fff", padding: "20px 28px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="page-header">
           <div>
             <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Plans médias</h1>
             <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Vue Gantt — {allPlans.length} plan{allPlans.length > 1 ? "s" : ""} actif{allPlans.length > 1 ? "s" : ""}</p>
           </div>
         </div>
 
-        <div style={{ padding: "24px 28px" }}>
+        <div className="page-content">
 
           {/* Légende */}
           <div style={{ display: "flex", gap: "20px", marginBottom: "20px", flexWrap: "wrap" }}>

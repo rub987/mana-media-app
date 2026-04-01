@@ -11,3 +11,150 @@ body {
   background: #f5f6fa;
   color: #222;
 }
+
+/* ─── Layout ─── */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  background: #f5f6fa;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+/* ─── Sidebar mobile ─── */
+.sidebar-wrap {
+  flex-shrink: 0;
+}
+
+.hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 250;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #1a1a2e;
+  border: none;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 199;
+}
+
+/* ─── Grilles responsive ─── */
+.grid-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.grid-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* ─── Tables responsive ─── */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Page header/content ─── */
+.page-header {
+  background: #fff;
+  padding: 20px 28px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-content {
+  padding: 24px 28px;
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 768px) {
+
+  /* Sidebar */
+  .sidebar-wrap {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  .sidebar-wrap.is-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay.is-open {
+    display: block;
+  }
+
+  .hamburger-btn {
+    display: flex;
+  }
+
+  /* Grilles */
+  .grid-4col {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-3col {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-2col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Padding */
+  .page-header {
+    padding: 14px 16px 14px 62px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .page-content {
+    padding: 16px;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-4col {
+    grid-template-columns: 1fr !important;
+  }
+}

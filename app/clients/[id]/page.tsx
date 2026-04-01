@@ -42,13 +42,13 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
   const budgetK = Math.round(client.budget_mensuel / 1000);
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="app-layout">
       <Sidebar />
 
-      <main style={{ flex: 1, background: "#f5f6fa", overflowY: "auto" }}>
+      <main className="app-main">
 
         {/* Header */}
-        <div style={{ background: "#fff", padding: "20px 28px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="page-header">
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <Link href="/clients" style={{ color: "#888", textDecoration: "none", fontSize: "13px" }}>← Clients</Link>
             <div>
@@ -75,10 +75,10 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
           </div>
         </div>
 
-        <div style={{ padding: "24px 28px" }}>
+        <div className="page-content">
 
           {/* KPIs */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
+          <div className="grid-4col" style={{ marginBottom: "24px" }}>
             {[
               { label: "Budget mensuel", value: `${budgetK}k F`, color: "#7b9fff" },
               { label: "ROI estimé", value: client.roi || "—", color: "#34d399", highlight: client.roi?.startsWith("×") },
@@ -93,7 +93,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
             ))}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+          <div className="grid-2col">
 
             {/* Informations */}
             <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>

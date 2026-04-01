@@ -126,12 +126,12 @@ export default async function Dashboard() {
   ];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="app-layout">
       <Sidebar />
 
-      <main style={{ flex: 1, background: "#f5f6fa", overflowY: "auto" }}>
+      <main className="app-main">
         {/* Header */}
-        <div style={{ background: "#fff", padding: "20px 28px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="page-header">
           <div>
             <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Tableau de bord</h1>
             <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Vue globale — données en direct</p>
@@ -141,10 +141,10 @@ export default async function Dashboard() {
           </Link>
         </div>
 
-        <div style={{ padding: "24px 28px" }}>
+        <div className="page-content">
 
           {/* KPIs */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "20px" }}>
+          <div className="grid-4col">
             {kpis.map((kpi) => (
               <div key={kpi.label} style={{ background: "#fff", borderRadius: "10px", padding: "18px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
                 <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>{kpi.label}</div>
@@ -171,7 +171,7 @@ export default async function Dashboard() {
             </div>
           )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+          <div className="grid-2col">
 
             {/* Budget par canal */}
             <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "20px" }}>
@@ -226,7 +226,7 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px", marginBottom: "16px" }}>
+          <div className="grid-2col">
 
             {/* Plans à venir */}
             <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
@@ -239,7 +239,7 @@ export default async function Dashboard() {
                   Aucun plan planifié.
                 </div>
               ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                <div className="table-scroll"><table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                   <thead>
                     <tr style={{ background: "#fafafa" }}>
                       {["Client", "Canal", "Budget", "Démarre dans", "Fin"].map((h) => (
@@ -272,7 +272,7 @@ export default async function Dashboard() {
                       );
                     })}
                   </tbody>
-                </table>
+                </table></div>
               )}
             </div>
 
@@ -308,7 +308,7 @@ export default async function Dashboard() {
               <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Derniers clients</h3>
               <Link href="/clients" style={{ fontSize: "13px", color: "#7b9fff", textDecoration: "none" }}>Voir tous →</Link>
             </div>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+            <div className="table-scroll"><table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
               <thead>
                 <tr style={{ background: "#fafafa" }}>
                   {["Client", "Offre", "Budget / mois", "Canaux", "Statut", "ROI"].map((h) => (
@@ -341,7 +341,7 @@ export default async function Dashboard() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
 
         </div>

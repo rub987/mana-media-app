@@ -33,16 +33,16 @@ export default async function Parametres() {
   );
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="app-layout">
       <Sidebar />
 
-      <main style={{ flex: 1, background: "#f5f6fa", overflowY: "auto" }}>
-        <div style={{ background: "#fff", padding: "20px 28px", borderBottom: "1px solid #e5e7eb" }}>
+      <main className="app-main">
+        <div className="page-header">
           <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Paramètres</h1>
           <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Compte, intégrations et informations agence</p>
         </div>
 
-        <div style={{ padding: "24px 28px", maxWidth: "720px" }}>
+        <div className="page-content" style={{ maxWidth: "720px" }}>
 
           {/* Compte */}
           <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "16px" }}>

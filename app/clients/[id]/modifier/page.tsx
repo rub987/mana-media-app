@@ -109,7 +109,7 @@ export default function ModifierClient() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh" }}>
+      <div className="app-layout">
         <Sidebar />
         <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f6fa" }}>
           <div style={{ fontSize: "14px", color: "#888" }}>Chargement…</div>
@@ -119,11 +119,11 @@ export default function ModifierClient() {
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="app-layout">
       <Sidebar />
 
-      <main style={{ flex: 1, background: "#f5f6fa", overflowY: "auto" }}>
-        <div style={{ background: "#fff", padding: "20px 28px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <main className="app-main">
+        <div className="page-header">
           <div>
             <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Modifier — {form.nom}</h1>
             <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Les modifications seront enregistrées dans Supabase</p>
@@ -133,7 +133,7 @@ export default function ModifierClient() {
           </button>
         </div>
 
-        <div style={{ padding: "24px 28px", maxWidth: "720px" }}>
+        <div className="page-content" style={{ maxWidth: "720px" }}>
           <form onSubmit={handleSubmit}>
 
             {/* Infos */}
