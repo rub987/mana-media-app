@@ -41,6 +41,30 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
   const offre = client.offre as string;
   const budgetK = Math.round(client.budget_mensuel / 1000);
 
+  // --- Reporting ---
+  const allPlans = (plans || []) as any[];
+  const budgetPlansTotal = allPlans.reduce((acc: number, p: any) => acc + (p.budget || 0), 0);
+  const plansEnCours = allPlans.filter((p: any) => p.statut === "En cours");
+  const plansAVenir = allPlans.filter((p: any) => p.statut === "Planifié");
+  const plansTermines = allPlans.filter((p: any) => p.statut === "Terminé");
+  const budgetEnCours = plansEnCours.reduce((acc: number, p: any) => acc + (p.budget || 0), 0);
+
+  const canalColor: Record<string, string> = {
+    Radio: "#fbbf24", Digital: "#7b9fff", Print: "#34d399", Affichage: "#f87171", TV: "#a78bfa",
+  };
+  const budgetParCanal: Record<string, number> = {};
+  for (const p of allPlans) {
+    if (p.budget && p.canal) budgetParCanal[p.canal] = (budgetParCanal[p.canal] || 0) + p.budget;
+  }
+  const canauxTries = Object.entries(budgetParCanal).sort((a, b) => b[1] - a[1]);
+  const maxCanal = Math.max(...canauxTries.map(([, v]) => v), 1);
+
+  function fmtBudget(n: number) {
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M F`;
+    if (n >= 1_000) return `${Math.round(n / 1000)}k F`;
+    return `${n} F`;
+  }
+
   return (
     <div className="app-layout">
       <Sidebar />
@@ -175,14 +199,77 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
           {/* Plan média */}
           <PlanMediaSection clientId={id} plans={plans || []} />
 
-          {/* Reporting placeholder */}
+          {/* Reporting */}
           <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
             <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>
               Reporting
             </div>
-            <div style={{ padding: "32px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>
-              Les données de reporting apparaîtront ici une fois la campagne lancée.
-            </div>
+
+            {allPlans.length === 0 ? (
+              <div style={{ padding: "32px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>
+                Les données de reporting apparaîtront ici une fois la campagne lancée.
+              </div>
+            ) : (
+              <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "20px" }}>
+
+                {/* KPIs reporting */}
+                <div className="grid-4col">
+                  {[
+                    { label: "Plans en cours", value: String(plansEnCours.length), color: "#22c55e", sub: `Budget actif : ${fmtBudget(budgetEnCours)}` },
+                    { label: "Plans à venir", value: String(plansAVenir.length), color: "#7b9fff", sub: "Planifiés" },
+                    { label: "Plans terminés", value: String(plansTermines.length), color: "#9ca3af", sub: `sur ${allPlans.length} au total` },
+                    { label: "Budget total plans", value: fmtBudget(budgetPlansTotal), color: "#fbbf24", sub: `vs ${fmtBudget(client.budget_mensuel || 0)}/mois` },
+                  ].map((k) => (
+                    <div key={k.label} style={{ background: "#f9fafb", borderRadius: "8px", padding: "14px 16px", borderLeft: `3px solid ${k.color}` }}>
+                      <div style={{ fontSize: "10px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{k.label}</div>
+                      <div style={{ fontSize: "22px", fontWeight: 700, color: "#1a1a2e" }}>{k.value}</div>
+                      <div style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}>{k.sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Budget par canal */}
+                {canauxTries.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#555", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Budget par canal</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {canauxTries.map(([canal, budget]) => (
+                        <div key={canal} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", width: "100px", flexShrink: 0 }}>
+                            <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: canalColor[canal] || "#aaa", flexShrink: 0 }} />
+                            <span style={{ fontSize: "13px", color: "#374151" }}>{canal}</span>
+                          </div>
+                          <div style={{ flex: 1, background: "#f0f0f0", borderRadius: "4px", height: "8px", overflow: "hidden" }}>
+                            <div style={{ width: `${Math.round((budget / maxCanal) * 100)}%`, height: "100%", borderRadius: "4px", background: canalColor[canal] || "#aaa" }} />
+                          </div>
+                          <span style={{ fontSize: "13px", fontWeight: 600, color: "#1a1a2e", width: "70px", textAlign: "right" }}>{fmtBudget(budget)}</span>
+                          <span style={{ fontSize: "11px", color: "#aaa", width: "40px", textAlign: "right" }}>{Math.round((budget / (budgetPlansTotal || 1)) * 100)}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Statut des plans */}
+                <div>
+                  <div style={{ fontSize: "12px", fontWeight: 600, color: "#555", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Statut des plans</div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {[
+                      { label: "En cours", plans: plansEnCours, bg: "#dcfce7", color: "#16a34a" },
+                      { label: "Planifié", plans: plansAVenir, bg: "#dbeafe", color: "#1d4ed8" },
+                      { label: "Terminé", plans: plansTermines, bg: "#f3f4f6", color: "#6b7280" },
+                      { label: "Annulé", plans: allPlans.filter((p: any) => p.statut === "Annulé"), bg: "#fee2e2", color: "#dc2626" },
+                    ].filter((s) => s.plans.length > 0).map((s) => (
+                      <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "20px", background: s.bg }}>
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: s.color }}>{s.plans.length}</span>
+                        <span style={{ fontSize: "12px", color: s.color }}>{s.label}{s.plans.length > 1 ? "s" : ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            )}
           </div>
 
         </div>
