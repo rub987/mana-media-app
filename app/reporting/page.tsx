@@ -235,10 +235,7 @@ export default async function Reporting() {
                   return (
                     <tr key={client.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
                       <td style={{ padding: "11px 16px", fontWeight: 600 }}>
-                        <a href={`/clients/${client.id}`} style={{ color: "#1a1a2e", textDecoration: "none" }}
-                          onMouseEnter={e => (e.currentTarget.style.color = "#7b9fff")}
-                          onMouseLeave={e => (e.currentTarget.style.color = "#1a1a2e")}
-                        >{client.nom}</a>
+                        <a href={`/clients/${client.id}`} style={{ color: "#7b9fff", textDecoration: "none" }}>{client.nom}</a>
                       </td>
                       <td style={{ padding: "11px 16px" }}>
                         <span style={{ display: "inline-block", padding: "2px 7px", borderRadius: "10px", fontSize: "11px", fontWeight: 600, background: offreBadge[client.offre]?.bg, color: offreBadge[client.offre]?.color }}>
