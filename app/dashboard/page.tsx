@@ -126,7 +126,7 @@ export default async function Dashboard() {
     { label: "Clients actifs", value: String(clientsActifs), sub: `${tauxActivite}% du portefeuille`, color: "#7b9fff" },
     { label: "Budget géré / mois", value: fmt(budgetMensuel), sub: "Clients actifs uniquement", color: "#34d399" },
     { label: "Plans médias en cours", value: String(plansEnCours), sub: `${plansAVenir.length} à venir`, color: "#fbbf24" },
-    { label: "Campagnes sociales en ligne", value: String(socialEnLigne), sub: `${allSocial.length} au total`, color: "#a78bfa" },
+    { label: "Campagnes digitales en ligne", value: String(socialEnLigne), sub: `${allSocial.length} au total`, color: "#a78bfa" },
   ];
 
   return (
@@ -179,7 +179,7 @@ export default async function Dashboard() {
           {socialActives.length > 0 && (
             <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "20px" }}>
               <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Campagnes sociales actives</h3>
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Campagnes sociales & digitales actives</h3>
                 <Link href="/social" style={{ fontSize: "13px", color: "#7b9fff", textDecoration: "none" }}>Voir tout →</Link>
               </div>
               <div className="table-scroll">
