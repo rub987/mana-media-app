@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import PlanMediaSection from "../../components/PlanMediaSection";
+import SocialSection from "../../components/SocialSection";
 import RefreshFromZohoButton from "../../components/RefreshFromZohoButton";
 import CreatePortalAccessButton from "../../components/CreatePortalAccessButton";
 
@@ -35,6 +36,12 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
     .select("*")
     .eq("client_id", id)
     .order("date_debut", { ascending: true });
+
+  const { data: campagnes } = await supabase
+    .from("campagnes_sociales")
+    .select("*")
+    .eq("client_id", id)
+    .order("date_debut", { ascending: false });
 
   if (!client) notFound();
 
@@ -198,6 +205,9 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
 
           {/* Plan média */}
           <PlanMediaSection clientId={id} plans={plans || []} />
+
+          {/* Campagnes sociales */}
+          <SocialSection clientId={id} campagnes={campagnes || []} />
 
           {/* Reporting */}
           <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
