@@ -19,6 +19,7 @@ const canalColor: Record<string, string> = {
   Print: "#34d399",
   Affichage: "#f87171",
   TV: "#a78bfa",
+  Digital: "#7b9fff",
 };
 
 const canaux = ["Radio", "Print", "Affichage", "TV"];

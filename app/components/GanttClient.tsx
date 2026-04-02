@@ -7,6 +7,7 @@ const canalColor: Record<string, string> = {
   Print: "#34d399",
   Affichage: "#f87171",
   TV: "#a78bfa",
+  Digital: "#7b9fff", // legacy — plus créable, affiché pour données existantes
 };
 
 const canalEmoji: Record<string, string> = {
@@ -14,6 +15,7 @@ const canalEmoji: Record<string, string> = {
   Print: "📰",
   Affichage: "📋",
   TV: "📺",
+  Digital: "💻",
 };
 
 const offreBadge: Record<string, { bg: string; color: string }> = {
