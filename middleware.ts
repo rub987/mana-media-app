@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Pages réservées aux admins — CMs redirigés vers /dashboard
-    const adminOnlyPaths = ["/activite", "/emplacements", "/parametres", "/offres", "/nouveau-client", "/reporting"];
+    const adminOnlyPaths = ["/activite", "/emplacements", "/parametres", "/offres", "/reporting"];
     const isCM = role === "community_manager";
     if (isCM && adminOnlyPaths.some(p => pathname.startsWith(p))) {
       const url = request.nextUrl.clone();

@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import PrintButton from "./PrintButton";
 
 export const revalidate = 0;
@@ -36,6 +36,13 @@ const statutLabel: Record<string, string> = {
 export default async function Rapport({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user?.user_metadata?.role === "community_manager") {
+    const { data: assignment } = await supabase
+      .from("cm_clients").select("client_id").eq("cm_user_id", user.id).eq("client_id", id).single();
+    if (!assignment) redirect("/clients");
+  }
 
   const [{ data: client }, { data: plans }] = await Promise.all([
     supabase.from("clients").select("*").eq("id", id).single(),

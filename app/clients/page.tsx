@@ -56,14 +56,12 @@ export default async function Clients() {
               {allClients.length} client{allClients.length > 1 ? "s" : ""} · {actifs} actif{actifs > 1 ? "s" : ""}
             </p>
           </div>
-          {!isCM && (
-            <div style={{ display: "flex", gap: "8px" }}>
-              <ZohoImportButton />
-              <Link href="/nouveau-client" style={{ background: "#1a1a2e", color: "#fff", border: "none", padding: "9px 18px", borderRadius: "6px", fontSize: "13px", cursor: "pointer", fontWeight: 500, textDecoration: "none" }}>
-                + Nouveau client
-              </Link>
-            </div>
-          )}
+          <div style={{ display: "flex", gap: "8px" }}>
+            {!isCM && <ZohoImportButton />}
+            <Link href="/nouveau-client" style={{ background: "#1a1a2e", color: "#fff", border: "none", padding: "9px 18px", borderRadius: "6px", fontSize: "13px", cursor: "pointer", fontWeight: 500, textDecoration: "none" }}>
+              + Nouveau client
+            </Link>
+          </div>
         </div>
 
         <div className="page-content">

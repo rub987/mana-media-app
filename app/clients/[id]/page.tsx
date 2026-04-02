@@ -1,6 +1,6 @@
 import Sidebar from "../../components/Sidebar";
 import { createClient } from "@/utils/supabase/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import PlanMediaSection from "../../components/PlanMediaSection";
 import SocialSection from "../../components/SocialSection";
@@ -24,6 +24,13 @@ const progressColor: Record<string, string> = {
 export default async function ClientDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user?.user_metadata?.role === "community_manager") {
+    const { data: assignment } = await supabase
+      .from("cm_clients").select("client_id").eq("cm_user_id", user.id).eq("client_id", id).single();
+    if (!assignment) redirect("/clients");
+  }
 
   const { data: client } = await supabase
     .from("clients")

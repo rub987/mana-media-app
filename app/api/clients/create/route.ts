@@ -112,6 +112,11 @@ export async function POST(request: Request) {
     }
   }
 
+  // Si le créateur est un CM, l'assigner automatiquement au nouveau client
+  if (user?.user_metadata?.role === "community_manager") {
+    await supabase.from("cm_clients").upsert({ cm_user_id: user.id, client_id: newClient.id });
+  }
+
   await logActivity({
     user_email: user?.email,
     action: "Client créé",

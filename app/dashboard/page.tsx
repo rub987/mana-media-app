@@ -60,12 +60,35 @@ function timeAgo(d: string) {
 
 export default async function Dashboard() {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isCM = user?.user_metadata?.role === "community_manager";
+
+  let cmClientIds: string[] = [];
+  if (isCM && user) {
+    const { data: assignments } = await supabase
+      .from("cm_clients").select("client_id").eq("cm_user_id", user.id);
+    cmClientIds = (assignments || []).map((a: any) => a.client_id);
+  }
 
   const [{ data: clients }, { data: plans }, { data: notifs }, { data: social }] = await Promise.all([
-    supabase.from("clients").select("*").order("created_at", { ascending: false }),
-    supabase.from("plans_media").select("*, clients(nom)").order("date_debut", { ascending: false }),
-    supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(20),
-    supabase.from("campagnes_sociales").select("*, clients(nom)").order("date_debut", { ascending: false }),
+    isCM
+      ? (cmClientIds.length > 0
+          ? supabase.from("clients").select("*").in("id", cmClientIds).order("created_at", { ascending: false })
+          : Promise.resolve({ data: [] }))
+      : supabase.from("clients").select("*").order("created_at", { ascending: false }),
+    isCM
+      ? (cmClientIds.length > 0
+          ? supabase.from("plans_media").select("*, clients(nom)").in("client_id", cmClientIds).order("date_debut", { ascending: false })
+          : Promise.resolve({ data: [] }))
+      : supabase.from("plans_media").select("*, clients(nom)").order("date_debut", { ascending: false }),
+    isCM
+      ? Promise.resolve({ data: [] })
+      : supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(20),
+    isCM
+      ? (cmClientIds.length > 0
+          ? supabase.from("campagnes_sociales").select("*, clients(nom)").in("client_id", cmClientIds).order("date_debut", { ascending: false })
+          : Promise.resolve({ data: [] }))
+      : supabase.from("campagnes_sociales").select("*, clients(nom)").order("date_debut", { ascending: false }),
   ]);
 
   const allClients = clients ?? [];
@@ -138,7 +161,7 @@ export default async function Dashboard() {
         <div className="page-header">
           <div>
             <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Tableau de bord</h1>
-            <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Vue globale — données en direct</p>
+            <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>{isCM ? "Mes clients assignés — données en direct" : "Vue globale — données en direct"}</p>
           </div>
           <Link href="/nouveau-client" style={{ background: "#1a1a2e", color: "#fff", padding: "9px 18px", borderRadius: "6px", fontSize: "13px", fontWeight: 500, textDecoration: "none" }}>
             + Nouveau client
