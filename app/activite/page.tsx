@@ -1,7 +1,10 @@
 import Sidebar from "../components/Sidebar";
 import { createClient } from "@/utils/supabase/server";
+import Link from "next/link";
 
 export const revalidate = 0;
+
+const PAGE_SIZE = 50;
 
 const actionColor: Record<string, { bg: string; color: string; dot: string }> = {
   "Connexion admin":       { bg: "#f0f4ff", color: "#4f6ef5", dot: "#4f6ef5" },
@@ -26,22 +29,49 @@ function getInitials(email?: string) {
   return email.split("@")[0].slice(0, 2).toUpperCase();
 }
 
-export default async function ActivitePage() {
+export default async function ActivitePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam || "1"));
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  // Limite à 3 mois
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  const cutoff = threeMonthsAgo.toISOString();
+
   const supabase = await createClient();
+
+  // Count total pour pagination
+  const { count } = await supabase
+    .from("activity_logs")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", cutoff);
 
   const { data: logs } = await supabase
     .from("activity_logs")
     .select("*")
+    .gte("created_at", cutoff)
     .order("created_at", { ascending: false })
-    .limit(200);
+    .range(from, to);
 
   const allLogs = logs || [];
+  const totalLogs = count || 0;
+  const totalPages = Math.ceil(totalLogs / PAGE_SIZE);
 
-  // Stats
-  const today = new Date().toDateString();
-  const logsToday = allLogs.filter(l => new Date(l.created_at).toDateString() === today).length;
-  const connexions = allLogs.filter(l => l.action.startsWith("Connexion")).length;
-  const modifications = allLogs.filter(l => l.action.includes("modifié") || l.action.includes("créé") || l.action.includes("supprimé")).length;
+  // Stats (sur tous les logs du jour, pas seulement la page)
+  const { data: todayLogs } = await supabase
+    .from("activity_logs")
+    .select("action")
+    .gte("created_at", new Date().toISOString().slice(0, 10));
+
+  const logsToday = todayLogs?.length || 0;
+  const connexions = todayLogs?.filter(l => l.action.startsWith("Connexion")).length || 0;
+  const modifications = todayLogs?.filter(l => l.action.includes("modifié") || l.action.includes("créé") || l.action.includes("supprimé")).length || 0;
 
   return (
     <div className="app-layout">
@@ -51,7 +81,7 @@ export default async function ActivitePage() {
         {/* Header */}
         <div className="page-header">
           <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Journal d'activité</h1>
-          <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Toutes les actions effectuées sur l'application</p>
+          <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>Activité des 3 derniers mois</p>
         </div>
 
         <div className="page-content">
@@ -60,8 +90,8 @@ export default async function ActivitePage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "24px" }}>
             {[
               { label: "Actions aujourd'hui", value: String(logsToday), color: "#7b9fff" },
-              { label: "Connexions totales", value: String(connexions), color: "#34d399" },
-              { label: "Modifications", value: String(modifications), color: "#fbbf24" },
+              { label: "Connexions aujourd'hui", value: String(connexions), color: "#34d399" },
+              { label: "Modifications aujourd'hui", value: String(modifications), color: "#fbbf24" },
             ].map((k) => (
               <div key={k.label} style={{ background: "#fff", borderRadius: "10px", padding: "18px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
                 <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>{k.label}</div>
@@ -75,12 +105,14 @@ export default async function ActivitePage() {
           <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
             <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Événements récents</span>
-              <span style={{ fontSize: "12px", color: "#888" }}>{allLogs.length} entrées</span>
+              <span style={{ fontSize: "12px", color: "#888" }}>
+                {totalLogs} entrée{totalLogs > 1 ? "s" : ""} · page {page}/{totalPages || 1}
+              </span>
             </div>
 
             {allLogs.length === 0 ? (
               <div style={{ padding: "40px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>
-                Aucune activité enregistrée pour l'instant.
+                Aucune activité enregistrée sur les 3 derniers mois.
               </div>
             ) : (
               <div>
@@ -121,6 +153,69 @@ export default async function ActivitePage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div style={{ padding: "14px 20px", borderTop: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "12px", color: "#888" }}>
+                  {from + 1}–{Math.min(to + 1, totalLogs)} sur {totalLogs}
+                </span>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  {page > 1 ? (
+                    <Link
+                      href={`/activite?page=${page - 1}`}
+                      style={{ padding: "5px 12px", border: "1px solid #e5e7eb", borderRadius: "6px", fontSize: "13px", background: "#fff", color: "#374151", textDecoration: "none" }}
+                    >
+                      ← Précédent
+                    </Link>
+                  ) : (
+                    <span style={{ padding: "5px 12px", border: "1px solid #f0f0f0", borderRadius: "6px", fontSize: "13px", color: "#ccc" }}>← Précédent</span>
+                  )}
+
+                  {/* Pages numérotées */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                    .reduce<(number | "…")[]>((acc, p, idx, arr) => {
+                      if (idx > 0 && typeof arr[idx - 1] === "number" && (p as number) - (arr[idx - 1] as number) > 1) acc.push("…");
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((p, i) =>
+                      p === "…" ? (
+                        <span key={`ellipsis-${i}`} style={{ padding: "5px 8px", fontSize: "13px", color: "#bbb" }}>…</span>
+                      ) : (
+                        <Link
+                          key={p}
+                          href={`/activite?page=${p}`}
+                          style={{
+                            padding: "5px 10px",
+                            border: `1px solid ${p === page ? "#1a1a2e" : "#e5e7eb"}`,
+                            borderRadius: "6px",
+                            fontSize: "13px",
+                            background: p === page ? "#1a1a2e" : "#fff",
+                            color: p === page ? "#fff" : "#374151",
+                            textDecoration: "none",
+                            fontWeight: p === page ? 600 : 400,
+                          }}
+                        >
+                          {p}
+                        </Link>
+                      )
+                    )}
+
+                  {page < totalPages ? (
+                    <Link
+                      href={`/activite?page=${page + 1}`}
+                      style={{ padding: "5px 12px", border: "1px solid #e5e7eb", borderRadius: "6px", fontSize: "13px", background: "#fff", color: "#374151", textDecoration: "none" }}
+                    >
+                      Suivant →
+                    </Link>
+                  ) : (
+                    <span style={{ padding: "5px 12px", border: "1px solid #f0f0f0", borderRadius: "6px", fontSize: "13px", color: "#ccc" }}>Suivant →</span>
+                  )}
+                </div>
               </div>
             )}
           </div>
