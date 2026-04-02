@@ -18,13 +18,34 @@ type PlanWithClient = {
 
 export default async function MediaPlan() {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isCM = user?.user_metadata?.role === "community_manager";
 
-  const { data: plans } = await supabase
-    .from("plans_media")
-    .select("*, clients(nom, offre)")
-    .order("date_debut", { ascending: true });
+  let allPlans: PlanWithClient[] = [];
 
-  const allPlans = (plans || []) as PlanWithClient[];
+  if (isCM && user) {
+    const { data: assignments } = await supabase
+      .from("cm_clients")
+      .select("client_id")
+      .eq("cm_user_id", user.id);
+
+    const clientIds = (assignments || []).map((a) => a.client_id);
+
+    if (clientIds.length > 0) {
+      const { data: plans } = await supabase
+        .from("plans_media")
+        .select("*, clients(nom, offre)")
+        .in("client_id", clientIds)
+        .order("date_debut", { ascending: true });
+      allPlans = (plans || []) as PlanWithClient[];
+    }
+  } else {
+    const { data: plans } = await supabase
+      .from("plans_media")
+      .select("*, clients(nom, offre)")
+      .order("date_debut", { ascending: true });
+    allPlans = (plans || []) as PlanWithClient[];
+  }
 
   return (
     <div className="app-layout">

@@ -6,12 +6,18 @@ import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import NotifBell from "./NotifBell";
 
-const navItems = [
+const navItemsAdmin = [
   { label: "Dashboard", href: "/dashboard", icon: "📊" },
   { label: "Clients", href: "/clients", icon: "👥" },
   { label: "Plans médias", href: "/mediaplan", icon: "📅" },
   { label: "Emplacements", href: "/emplacements", icon: "📍" },
   { label: "Reporting", href: "/reporting", icon: "📈" },
+];
+
+const navItemsCM = [
+  { label: "Dashboard", href: "/dashboard", icon: "📊" },
+  { label: "Mes clients", href: "/clients", icon: "👥" },
+  { label: "Plans médias", href: "/mediaplan", icon: "📅" },
 ];
 
 const adminItems = [
@@ -49,6 +55,7 @@ export default function Sidebar() {
   const [userEmail, setUserEmail] = useState<string>("");
   const [displayName, setDisplayName] = useState<string>("");
   const [initials, setInitials] = useState<string>("…");
+  const [userRole, setUserRole] = useState<string>("admin");
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -60,6 +67,7 @@ export default function Sidebar() {
         setUserEmail(email);
         setDisplayName(name);
         setInitials(getInitials(email, meta?.full_name || meta?.name));
+        setUserRole(meta?.role || "admin");
       }
     });
   }, []);
@@ -116,7 +124,7 @@ export default function Sidebar() {
             <div style={{ padding: "8px 20px 4px", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1.5px", color: "#555" }}>
               Navigation
             </div>
-            {navItems.map((item) => (
+            {(userRole === "community_manager" ? navItemsCM : navItemsAdmin).map((item) => (
               <Link key={item.href} href={item.href} onClick={closeMenu} style={{
                 display: "flex",
                 alignItems: "center",
@@ -133,26 +141,30 @@ export default function Sidebar() {
               </Link>
             ))}
 
-            <div style={{ padding: "16px 20px 4px", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1.5px", color: "#555" }}>
-              Admin
-            </div>
-            <NotifBell />
-            {adminItems.map((item) => (
-              <Link key={item.href} href={item.href} onClick={closeMenu} style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "10px 20px",
-                color: pathname === item.href ? "#fff" : "#aaa",
-                textDecoration: "none",
-                fontSize: "13px",
-                background: pathname === item.href ? "#2a2a4e" : "transparent",
-                borderLeft: pathname === item.href ? "3px solid #7b9fff" : "3px solid transparent",
-              }}>
-                <span>{item.icon}</span>
-                {item.label}
-              </Link>
-            ))}
+            {userRole !== "community_manager" && (
+              <>
+                <div style={{ padding: "16px 20px 4px", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1.5px", color: "#555" }}>
+                  Admin
+                </div>
+                <NotifBell />
+                {adminItems.map((item) => (
+                  <Link key={item.href} href={item.href} onClick={closeMenu} style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "10px 20px",
+                    color: pathname === item.href ? "#fff" : "#aaa",
+                    textDecoration: "none",
+                    fontSize: "13px",
+                    background: pathname === item.href ? "#2a2a4e" : "transparent",
+                    borderLeft: pathname === item.href ? "3px solid #7b9fff" : "3px solid transparent",
+                  }}>
+                    <span>{item.icon}</span>
+                    {item.label}
+                  </Link>
+                ))}
+              </>
+            )}
           </nav>
 
           {/* User block */}
@@ -173,7 +185,7 @@ export default function Sidebar() {
                 {displayName || "…"}
               </div>
               <div style={{ fontSize: "10px", color: "#888", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {userEmail || "…"}
+                {userRole === "community_manager" ? "Community Manager" : "Administrateur"}
               </div>
             </div>
           </div>

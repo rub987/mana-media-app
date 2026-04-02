@@ -46,6 +46,15 @@ export async function middleware(request: NextRequest) {
       url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
+
+    // Pages réservées aux admins — CMs redirigés vers /dashboard
+    const adminOnlyPaths = ["/activite", "/emplacements", "/parametres", "/offres", "/nouveau-client", "/reporting"];
+    const isCM = role === "community_manager";
+    if (isCM && adminOnlyPaths.some(p => pathname.startsWith(p))) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

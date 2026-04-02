@@ -16,15 +16,16 @@ export async function GET() {
   const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const admins = users
+  const members = users
     .filter(u => u.user_metadata?.role !== "client")
     .map(u => ({
       id: u.id,
       email: u.email,
+      role: (u.user_metadata?.role as string) || "admin",
       created_at: u.created_at,
       last_sign_in_at: u.last_sign_in_at,
       invited: !u.last_sign_in_at,
     }));
 
-  return NextResponse.json({ admins });
+  return NextResponse.json({ admins: members });
 }
