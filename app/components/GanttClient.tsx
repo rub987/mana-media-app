@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 
 const canalColor: Record<string, string> = {
   Radio: "#fbbf24",
@@ -117,10 +118,10 @@ export default function GanttClient({ plans }: { plans: PlanWithClient[] }) {
   })();
 
   // Group by client
-  const byClient = new Map<string, { nom: string; offre: string; plans: PlanWithClient[] }>();
+  const byClient = new Map<string, { id: string; nom: string; offre: string; plans: PlanWithClient[] }>();
   for (const plan of filteredPlans) {
     if (!byClient.has(plan.client_id)) {
-      byClient.set(plan.client_id, { nom: plan.clients.nom, offre: plan.clients.offre, plans: [] });
+      byClient.set(plan.client_id, { id: plan.client_id, nom: plan.clients.nom, offre: plan.clients.offre, plans: [] });
     }
     byClient.get(plan.client_id)!.plans.push(plan);
   }
@@ -274,7 +275,7 @@ export default function GanttClient({ plans }: { plans: PlanWithClient[] }) {
                     <tr style={{ background: "#f8f9fc" }}>
                       <td colSpan={NUM_WEEKS + 2} style={{ padding: "8px 16px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <span style={{ fontSize: "12px", fontWeight: 700, color: "#1a1a2e" }}>{client.nom}</span>
+                          <Link href={`/clients/${client.id}`} style={{ fontSize: "12px", fontWeight: 700, color: "#1a1a2e", textDecoration: "none" }}>{client.nom}</Link>
                           <span style={{ display: "inline-block", padding: "2px 7px", borderRadius: "10px", fontSize: "10px", fontWeight: 600, background: offreBadge[client.offre]?.bg, color: offreBadge[client.offre]?.color }}>
                             {client.offre}
                           </span>
@@ -324,7 +325,10 @@ export default function GanttClient({ plans }: { plans: PlanWithClient[] }) {
           {clients.map((client) => {
             const total = client.plans.reduce((acc, p) => acc + (p.budget || 0), 0);
             return (
-              <div key={client.nom} style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "16px" }}>
+              <Link key={client.id} href={`/clients/${client.id}`} style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "16px", textDecoration: "none", display: "block", transition: "border-color 0.15s" }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = "#7b9fff")}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = "#e5e7eb")}
+              >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
                   <div style={{ fontSize: "12px", fontWeight: 600, color: "#1a1a2e" }}>{client.nom}</div>
                   <span style={{ display: "inline-block", padding: "2px 7px", borderRadius: "10px", fontSize: "10px", fontWeight: 600, background: offreBadge[client.offre]?.bg, color: offreBadge[client.offre]?.color }}>
@@ -337,7 +341,7 @@ export default function GanttClient({ plans }: { plans: PlanWithClient[] }) {
                 <div style={{ fontSize: "11px", color: "#888" }}>
                   {client.plans.length} plan{client.plans.length > 1 ? "s" : ""} · {[...new Set(client.plans.map(p => p.canal))].join(", ")}
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
