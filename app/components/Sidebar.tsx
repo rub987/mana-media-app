@@ -114,10 +114,10 @@ export default function Sidebar() {
           {/* Logo */}
           <div style={{ padding: "20px", borderBottom: "1px solid #2a2a4e" }}>
             <div style={{ fontSize: "18px", fontWeight: 700, color: "#fff", letterSpacing: "1px" }}>
-              MANA MEDIA
+              PilotMedia
             </div>
             <div style={{ fontSize: "10px", color: "#888", letterSpacing: "2px", marginTop: "2px" }}>
-              PILOTAGE REDSOYU
+              Le cockpit de votre régie pub.
             </div>
           </div>
 

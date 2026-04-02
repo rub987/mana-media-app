@@ -108,7 +108,7 @@ export default async function Portal() {
       {/* Header */}
       <div style={{ background: "#1a1a2e", padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <span style={{ fontSize: "16px", fontWeight: 800, color: "#fff", letterSpacing: "1px" }}>MANA MEDIA</span>
+          <span style={{ fontSize: "16px", fontWeight: 800, color: "#fff", letterSpacing: "1px" }}>PilotMedia</span>
           <span style={{ fontSize: "10px", color: "#555", letterSpacing: "2px" }}>PORTAIL CLIENT</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -311,7 +311,7 @@ export default async function Portal() {
           {/* Contact agence */}
           <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
             <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>
-              Votre contact MANA MEDIA
+              Votre contact PilotMedia
             </div>
             <div style={{ padding: "20px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
@@ -319,7 +319,7 @@ export default async function Portal() {
                   M
                 </div>
                 <div>
-                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#1a1a2e" }}>MANA MEDIA</div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#1a1a2e" }}>PilotMedia</div>
                   <div style={{ fontSize: "12px", color: "#888" }}>Régie publicitaire RESOYU</div>
                 </div>
               </div>
@@ -398,7 +398,7 @@ export default async function Portal() {
 
         {/* Footer */}
         <div style={{ textAlign: "center", fontSize: "12px", color: "#aaa", paddingTop: "16px" }}>
-          MANA MEDIA · Régie publicitaire RESOYU · Polynésie française
+          PilotMedia · Régie publicitaire RESOYU · Polynésie française
         </div>
 
       </div>

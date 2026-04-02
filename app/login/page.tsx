@@ -39,14 +39,14 @@ export default function Login() {
 
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <div style={{ fontSize: "24px", fontWeight: 800, color: "#fff", letterSpacing: "2px" }}>MANA MEDIA</div>
-          <div style={{ fontSize: "11px", color: "#7b9fff", letterSpacing: "3px", marginTop: "4px" }}>PILOTAGE MÉDIA</div>
+          <div style={{ fontSize: "24px", fontWeight: 800, color: "#fff", letterSpacing: "2px" }}>PilotMedia</div>
+          <div style={{ fontSize: "11px", color: "#7b9fff", letterSpacing: "3px", marginTop: "4px" }}>Le cockpit de votre régie publicitaire.</div>
         </div>
 
         {/* Card */}
         <div style={{ background: "#fff", borderRadius: "12px", padding: "32px" }}>
           <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#1a1a2e", marginBottom: "6px" }}>Connexion</h2>
-          <p style={{ fontSize: "13px", color: "#888", marginBottom: "24px" }}>Accès réservé à l'équipe MANA MEDIA</p>
+          <p style={{ fontSize: "13px", color: "#888", marginBottom: "24px" }}>Accès réservé à l'équipe PilotMedia</p>
 
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: "16px" }}>
@@ -94,7 +94,7 @@ export default function Login() {
         </div>
 
         <div style={{ textAlign: "center", marginTop: "20px", fontSize: "12px", color: "#555" }}>
-          © 2026 MANA MEDIA · REDSOYU
+          © 2026 PilotMedia · RESOYU
         </div>
       </div>
     </div>

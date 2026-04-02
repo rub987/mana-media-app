@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MANA MEDIA — Pilotage Média",
-  description: "Plateforme de pilotage média locale — Polynésie française",
+  title: "PilotMedia — Le cockpit de votre régie publicitaire.",
+  description: "Le cockpit de votre régie publicitaire — Polynésie française",
 };
 
 export default function RootLayout({

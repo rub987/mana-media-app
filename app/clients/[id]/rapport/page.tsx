@@ -139,7 +139,7 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
           <div className="header">
             <div className="header-top">
               <div>
-                <div className="brand">MANA MEDIA — RAPPORT CLIENT</div>
+                <div className="brand">PilotMedia — RAPPORT CLIENT</div>
                 <div className="client-name">{client.nom}</div>
                 <div className="client-sub">{client.secteur || "Secteur non renseigné"} · Contrat {client.contrat || "—"}</div>
               </div>
@@ -238,7 +238,7 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
           {/* Footer */}
           <div className="footer">
             <div>
-              <div className="footer-brand">MANA MEDIA</div>
+              <div className="footer-brand">PilotMedia</div>
               <div className="footer-sub">Régie publicitaire — Polynésie française</div>
             </div>
             <div className="footer-page">Document confidentiel · {today}</div>

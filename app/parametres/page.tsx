@@ -130,10 +130,10 @@ export default async function Parametres() {
               Agence
             </div>
             <div style={{ padding: "4px 20px 8px" }}>
-              {row("Nom", "MANA MEDIA")}
+              {row("Nom", "PilotMedia")}
               {row("Entité", "RESOYU")}
               {row("Territoire", "Polynésie française")}
-              {row("Application", "Pilotage Média v1.0")}
+              {row("Application", "PilotMedia v1.0")}
               {row("Déployé sur", "Vercel")}
             </div>
           </div>

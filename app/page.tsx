@@ -74,8 +74,8 @@ export default async function Home() {
       {/* NAV */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid #e5e7eb", padding: "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: "64px" }}>
         <div>
-          <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "1px", color: "#1a1a2e" }}>MANA MEDIA</span>
-          <span style={{ fontSize: "11px", color: "#888", letterSpacing: "2px", marginLeft: "10px" }}>PILOTAGE REDSOYU</span>
+          <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "1px", color: "#1a1a2e" }}>PilotMedia</span>
+          <span style={{ fontSize: "11px", color: "#888", letterSpacing: "2px", marginLeft: "10px" }}>Le cockpit de votre régie pub.</span>
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <a href="#offres" style={{ padding: "8px 14px", fontSize: "13px", color: "#555", textDecoration: "none" }}>Offres</a>
@@ -104,7 +104,7 @@ export default async function Home() {
             <span style={{ background: "linear-gradient(90deg, #7b9fff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>pilotée par des experts</span>
           </h1>
           <p style={{ fontSize: "18px", color: "#aaa", lineHeight: 1.6, marginBottom: "36px", maxWidth: "560px", margin: "0 auto 36px" }}>
-            MANA MEDIA gère vos campagnes publicitaires sur tous les supports locaux. Radio, digital, print, affichage — un seul interlocuteur, des résultats mesurés.
+            PilotMedia gère vos campagnes publicitaires sur tous les supports locaux. Radio, digital, print, affichage — un seul interlocuteur, des résultats mesurés.
           </p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
             <a href="#offres" style={{ padding: "14px 28px", background: "#7b9fff", color: "#fff", borderRadius: "8px", fontSize: "15px", fontWeight: 700, textDecoration: "none" }}>
@@ -129,7 +129,7 @@ export default async function Home() {
       {/* AVANTAGES */}
       <section style={{ padding: "80px 48px", background: "#f5f6fa" }}>
         <div style={{ maxWidth: "960px", margin: "0 auto" }}>
-          <h2 style={{ fontSize: "32px", fontWeight: 800, textAlign: "center", marginBottom: "8px" }}>Pourquoi MANA MEDIA ?</h2>
+          <h2 style={{ fontSize: "32px", fontWeight: 800, textAlign: "center", marginBottom: "8px" }}>Pourquoi PilotMedia ?</h2>
           <p style={{ textAlign: "center", color: "#888", fontSize: "15px", marginBottom: "48px" }}>La seule régie pub locale qui pilote vos campagnes de A à Z</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px" }}>
             {avantages.map((a) => (
@@ -196,7 +196,7 @@ export default async function Home() {
       {/* FOOTER */}
       <footer style={{ background: "#1a1a2e", padding: "32px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <div style={{ fontSize: "15px", fontWeight: 700, color: "#fff", letterSpacing: "1px" }}>MANA MEDIA</div>
+          <div style={{ fontSize: "15px", fontWeight: 700, color: "#fff", letterSpacing: "1px" }}>PilotMedia</div>
           <div style={{ fontSize: "11px", color: "#555", marginTop: "2px" }}>Régie publicitaire · RESOYU · Polynésie française</div>
         </div>
         <Link href="/login" style={{ fontSize: "12px", color: "#555", textDecoration: "none" }}>
