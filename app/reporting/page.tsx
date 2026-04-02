@@ -11,6 +11,31 @@ const canalColor: Record<string, string> = {
   Digital: "#7b9fff",
 };
 
+const plateformeColor: Record<string, string> = {
+  "Meta": "#1877f2",
+  "Google Ads": "#4285f4",
+  "TikTok Ads": "#000000",
+  "LinkedIn Ads": "#0077b5",
+  "YouTube": "#ff0000",
+};
+
+const plateformeIcon: Record<string, string> = {
+  "Meta": "📘",
+  "Google Ads": "🔍",
+  "TikTok Ads": "🎵",
+  "LinkedIn Ads": "💼",
+  "YouTube": "▶️",
+};
+
+const socialStatutColor: Record<string, { bg: string; color: string }> = {
+  "En préparation": { bg: "#f3f4f6", color: "#6b7280" },
+  "En attente validation": { bg: "#fff7ed", color: "#c2410c" },
+  "En ligne": { bg: "#dcfce7", color: "#16a34a" },
+  "Pausé": { bg: "#fef9c3", color: "#92400e" },
+  "Terminé": { bg: "#f3f4f6", color: "#374151" },
+  "Annulé": { bg: "#fee2e2", color: "#dc2626" },
+};
+
 const canalEmoji: Record<string, string> = {
   Radio: "🎙",
   Print: "📰",
@@ -44,13 +69,15 @@ function formatDate(d: string) {
 export default async function Reporting() {
   const supabase = await createClient();
 
-  const [{ data: clients }, { data: plans }] = await Promise.all([
+  const [{ data: clients }, { data: plans }, { data: campagnes }] = await Promise.all([
     supabase.from("clients").select("*").order("nom"),
     supabase.from("plans_media").select("*, clients(nom, offre)").order("date_debut", { ascending: false }),
+    supabase.from("campagnes_sociales").select("*, clients(nom)").order("date_debut", { ascending: false }),
   ]);
 
   const allClients = clients || [];
   const allPlans = (plans || []) as any[];
+  const allCampagnes = (campagnes || []) as any[];
 
   // --- KPIs ---
   const clientsActifs = allClients.filter((c) => c.statut === "Active").length;
@@ -82,11 +109,14 @@ export default async function Reporting() {
     return { ...client, clientPlans, totalBudgetPlans, plansActifs, canaux };
   }).filter((c) => c.clientPlans.length > 0 || c.statut === "Active");
 
+  const campagnesEnLigne = allCampagnes.filter((c) => c.statut === "En ligne").length;
+  const budgetSocialTotal = allCampagnes.reduce((acc, c) => acc + (c.budget_total || 0), 0);
+
   const kpis = [
     { label: "Clients actifs", value: String(clientsActifs), color: "#7b9fff" },
     { label: "Budget mensuel total", value: fmt(budgetMensuelTotal), color: "#34d399" },
-    { label: "Plans en cours", value: String(plansEnCours), color: "#fbbf24" },
-    { label: "Budget plans total", value: fmt(budgetPlansTotal), color: "#a78bfa" },
+    { label: "Plans médias en cours", value: String(plansEnCours), color: "#fbbf24" },
+    { label: "Campagnes digitales en ligne", value: String(campagnesEnLigne), color: "#a78bfa" },
   ];
 
   return (
@@ -98,7 +128,7 @@ export default async function Reporting() {
         <div className="page-header">
           <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Reporting</h1>
           <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>
-            Vue globale — {allClients.length} clients · {allPlans.length} plans médias
+            Vue globale — {allClients.length} clients · {allPlans.length} plans médias · {allCampagnes.length} campagnes digitales
           </p>
         </div>
 
@@ -206,6 +236,58 @@ export default async function Reporting() {
                           </span>
                         </td>
                         <td style={{ padding: "11px 16px", color: "#888" }}>{plan.notes || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Tableau campagnes sociales & digitales */}
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "16px" }}>
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>Campagnes sociales & digitales</span>
+              {budgetSocialTotal > 0 && (
+                <span style={{ fontSize: "12px", color: "#888", fontWeight: 400 }}>Budget total : <strong style={{ color: "#a78bfa" }}>{fmt(budgetSocialTotal)}</strong></span>
+              )}
+            </div>
+            {allCampagnes.length === 0 ? (
+              <div style={{ padding: "32px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>
+                Aucune campagne sociale créée.
+              </div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                  <thead>
+                    <tr style={{ background: "#fafafa" }}>
+                      {["Client", "Plateforme", "Type", "Objectif", "Budget total", "Début", "Fin", "Statut"].map((h) => (
+                        <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", color: "#888", borderBottom: "1px solid #f0f0f0" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allCampagnes.map((c) => (
+                      <tr key={c.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
+                        <td style={{ padding: "11px 16px", fontWeight: 600 }}>
+                          <a href={`/clients/${c.client_id}`} style={{ color: "#7b9fff", textDecoration: "none" }}>{c.clients?.nom || "—"}</a>
+                        </td>
+                        <td style={{ padding: "11px 16px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: plateformeColor[c.plateforme] || "#aaa", flexShrink: 0 }} />
+                            {plateformeIcon[c.plateforme] || ""} {c.plateforme}
+                          </div>
+                        </td>
+                        <td style={{ padding: "11px 16px", color: "#555" }}>{c.type_campagne || "—"}</td>
+                        <td style={{ padding: "11px 16px", color: "#555" }}>{c.objectif || "—"}</td>
+                        <td style={{ padding: "11px 16px" }}>{c.budget_total ? fmt(c.budget_total) : "—"}</td>
+                        <td style={{ padding: "11px 16px", color: "#666" }}>{formatDate(c.date_debut)}</td>
+                        <td style={{ padding: "11px 16px", color: "#666" }}>{c.date_fin ? formatDate(c.date_fin) : "—"}</td>
+                        <td style={{ padding: "11px 16px" }}>
+                          <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: socialStatutColor[c.statut]?.bg, color: socialStatutColor[c.statut]?.color }}>
+                            {c.statut}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
