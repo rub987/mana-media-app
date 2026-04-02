@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 
 type Comment = {
   id: string;
-  plan_id: string;
   user_email: string;
   contenu: string;
   created_at: string;
@@ -27,11 +26,15 @@ export default function PlanComments({
   planLabel,
   onClose,
   onCountChange,
+  apiPath = "/api/plan-comments",
+  idParam = "plan_id",
 }: {
   planId: string;
   planLabel: string;
   onClose: () => void;
   onCountChange?: (planId: string, delta: number) => void;
+  apiPath?: string;
+  idParam?: string;
 }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +43,7 @@ export default function PlanComments({
   const bottomRef = useRef<HTMLDivElement>(null);
 
   async function load() {
-    const res = await fetch(`/api/plan-comments?plan_id=${planId}`);
+    const res = await fetch(`${apiPath}?${idParam}=${planId}`);
     const data = await res.json();
     if (data.comments) setComments(data.comments);
     setLoading(false);
@@ -56,10 +59,10 @@ export default function PlanComments({
     e.preventDefault();
     if (!contenu.trim()) return;
     setSending(true);
-    const res = await fetch("/api/plan-comments", {
+    const res = await fetch(apiPath, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan_id: planId, contenu }),
+      body: JSON.stringify({ [idParam]: planId, contenu }),
     });
     const data = await res.json();
     if (data.comment) {
@@ -71,7 +74,7 @@ export default function PlanComments({
   }
 
   async function handleDelete(id: string) {
-    await fetch("/api/plan-comments", {
+    await fetch(apiPath, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),

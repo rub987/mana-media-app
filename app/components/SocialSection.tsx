@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import PlanComments from "./PlanComments";
 
 export const PLATEFORMES = ["Meta", "Google Ads", "TikTok Ads", "LinkedIn Ads", "YouTube"];
 
@@ -262,6 +263,16 @@ export default function SocialSection({ clientId, campagnes }: { clientId: strin
   const [showCreate, setShowCreate] = useState(false);
   const [editCampagne, setEditCampagne] = useState<Campagne | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [commentCampagne, setCommentCampagne] = useState<Campagne | null>(null);
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (campagnes.length === 0) return;
+    const ids = campagnes.map((c) => c.id).join(",");
+    fetch(`/api/social-comments?campagne_ids=${ids}`)
+      .then((r) => r.json())
+      .then((data) => { if (data.counts) setCommentCounts(data.counts); });
+  }, [campagnes]);
 
   async function handleDelete(id: string) {
     if (!confirm("Supprimer cette campagne ? Cette action est irréversible.")) return;
@@ -283,6 +294,16 @@ export default function SocialSection({ clientId, campagnes }: { clientId: strin
           clientId={clientId}
           campagne={editCampagne}
           onClose={() => { setShowCreate(false); setEditCampagne(null); }}
+        />
+      )}
+      {commentCampagne && (
+        <PlanComments
+          planId={commentCampagne.id}
+          planLabel={`${commentCampagne.plateforme} · ${commentCampagne.type_campagne}`}
+          onClose={() => setCommentCampagne(null)}
+          apiPath="/api/social-comments"
+          idParam="campagne_id"
+          onCountChange={(id, delta) => setCommentCounts((prev) => ({ ...prev, [id]: Math.max(0, (prev[id] || 0) + delta) }))}
         />
       )}
 
@@ -344,6 +365,17 @@ export default function SocialSection({ clientId, campagnes }: { clientId: strin
                     </td>
                     <td style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", gap: "6px" }}>
+                        <button
+                          onClick={() => setCommentCampagne(c)}
+                          style={{ padding: "4px 10px", border: "1px solid #d1d5db", borderRadius: "5px", fontSize: "11px", cursor: "pointer", background: "#fff", color: "#374151" }}
+                          title="Notes internes"
+                        >
+                          💬{commentCounts[c.id] > 0 && (
+                            <span style={{ marginLeft: "4px", background: "#7b9fff", color: "#fff", borderRadius: "10px", fontSize: "10px", fontWeight: 700, padding: "1px 5px" }}>
+                              {commentCounts[c.id]}
+                            </span>
+                          )}
+                        </button>
                         <button
                           onClick={() => setEditCampagne(c)}
                           style={{ padding: "4px 10px", border: "1px solid #d1d5db", borderRadius: "5px", fontSize: "11px", cursor: "pointer", background: "#fff", color: "#374151" }}

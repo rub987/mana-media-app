@@ -61,15 +61,17 @@ function timeAgo(d: string) {
 export default async function Dashboard() {
   const supabase = await createClient();
 
-  const [{ data: clients }, { data: plans }, { data: notifs }] = await Promise.all([
+  const [{ data: clients }, { data: plans }, { data: notifs }, { data: social }] = await Promise.all([
     supabase.from("clients").select("*").order("created_at", { ascending: false }),
     supabase.from("plans_media").select("*, clients(nom)").order("date_debut", { ascending: false }),
     supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(20),
+    supabase.from("campagnes_sociales").select("*, clients(nom)").order("date_debut", { ascending: false }),
   ]);
 
   const allClients = clients ?? [];
   const allPlans = (plans ?? []) as any[];
   const allNotifs = notifs ?? [];
+  const allSocial = (social ?? []) as any[];
 
   // --- KPIs ---
   const clientsActifs = allClients.filter((c) => c.statut === "Active").length;
@@ -79,6 +81,8 @@ export default async function Dashboard() {
   const plansEnCours = allPlans.filter((p) => p.statut === "En cours").length;
   const contactsRecus = allNotifs.filter((n) => n.type === "contact").length;
   const tauxActivite = allClients.length > 0 ? Math.round((clientsActifs / allClients.length) * 100) : 0;
+  const socialEnLigne = allSocial.filter((c) => c.statut === "En ligne").length;
+  const socialActives = allSocial.filter((c) => c.statut === "En ligne" || c.statut === "En préparation" || c.statut === "En attente validation").slice(0, 5);
 
   // --- Budget par canal ---
   const budgetParCanal: Record<string, number> = {};
@@ -121,8 +125,8 @@ export default async function Dashboard() {
   const kpis = [
     { label: "Clients actifs", value: String(clientsActifs), sub: `${tauxActivite}% du portefeuille`, color: "#7b9fff" },
     { label: "Budget géré / mois", value: fmt(budgetMensuel), sub: "Clients actifs uniquement", color: "#34d399" },
-    { label: "Plans en cours", value: String(plansEnCours), sub: `${plansAVenir.length} à venir`, color: "#fbbf24" },
-    { label: "Contacts reçus", value: String(contactsRecus), sub: "Via le formulaire public", color: "#f87171" },
+    { label: "Plans médias en cours", value: String(plansEnCours), sub: `${plansAVenir.length} à venir`, color: "#fbbf24" },
+    { label: "Campagnes sociales en ligne", value: String(socialEnLigne), sub: `${allSocial.length} au total`, color: "#a78bfa" },
   ];
 
   return (
@@ -168,6 +172,52 @@ export default async function Dashboard() {
                   </Link>
                 );
               })}
+            </div>
+          )}
+
+          {/* Campagnes sociales actives */}
+          {socialActives.length > 0 && (
+            <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "20px" }}>
+              <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Campagnes sociales actives</h3>
+                <Link href="/social" style={{ fontSize: "13px", color: "#7b9fff", textDecoration: "none" }}>Voir tout →</Link>
+              </div>
+              <div className="table-scroll">
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                  <thead>
+                    <tr style={{ background: "#fafafa" }}>
+                      {["Client", "Plateforme", "Type", "Budget", "Statut"].map((h) => (
+                        <th key={h} style={{ textAlign: "left", padding: "9px 16px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", color: "#888", borderBottom: "1px solid #f0f0f0" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {socialActives.map((c) => {
+                      const statutColors: Record<string, { bg: string; color: string }> = {
+                        "En ligne": { bg: "#dcfce7", color: "#16a34a" },
+                        "En préparation": { bg: "#f3f4f6", color: "#6b7280" },
+                        "En attente validation": { bg: "#fff7ed", color: "#c2410c" },
+                      };
+                      const sc = statutColors[c.statut] || { bg: "#f3f4f6", color: "#6b7280" };
+                      return (
+                        <tr key={c.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
+                          <td style={{ padding: "11px 16px" }}>
+                            <Link href={`/clients/${c.client_id}`} style={{ fontWeight: 600, color: "#1a1a2e", textDecoration: "none" }}>{c.clients?.nom || "—"}</Link>
+                          </td>
+                          <td style={{ padding: "11px 16px", fontWeight: 500 }}>{c.plateforme}</td>
+                          <td style={{ padding: "11px 16px", color: "#666" }}>{c.type_campagne}</td>
+                          <td style={{ padding: "11px 16px" }}>{c.budget_total ? fmt(c.budget_total) : "—"}</td>
+                          <td style={{ padding: "11px 16px" }}>
+                            <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: sc.bg, color: sc.color }}>
+                              {c.statut}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
