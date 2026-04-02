@@ -6,7 +6,7 @@ import Sidebar from "../../../components/Sidebar";
 import { createClient } from "@/utils/supabase/client";
 
 
-const canaux_options = ["Radio", "Digital", "Print", "Affichage", "TV"];
+const canaux_options = ["Radio", "Print", "Affichage", "TV"];
 
 export default function ModifierClient() {
   const router = useRouter();

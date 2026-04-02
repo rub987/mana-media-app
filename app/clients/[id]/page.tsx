@@ -57,7 +57,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
   const budgetEnCours = plansEnCours.reduce((acc: number, p: any) => acc + (p.budget || 0), 0);
 
   const canalColor: Record<string, string> = {
-    Radio: "#fbbf24", Digital: "#7b9fff", Print: "#34d399", Affichage: "#f87171", TV: "#a78bfa",
+    Radio: "#fbbf24", Print: "#34d399", Affichage: "#f87171", TV: "#a78bfa",
   };
   const budgetParCanal: Record<string, number> = {};
   for (const p of allPlans) {

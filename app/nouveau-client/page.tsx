@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Sidebar from "../components/Sidebar";
 
-const canaux_options = ["Radio", "Digital", "Print", "Affichage", "TV"];
+const canaux_options = ["Radio", "Print", "Affichage", "TV"];
 
 export default function NouveauClient() {
   return (

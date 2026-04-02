@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const canaux = ["Radio", "Digital", "Print", "Affichage", "TV"];
+const canaux = ["Radio", "Print", "Affichage", "TV"];
 const statuts = ["Planifié", "En cours", "Terminé", "Annulé"];
 
 type Emplacement = { id: string; nom: string; commune: string; statut: string };

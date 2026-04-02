@@ -5,7 +5,6 @@ export const revalidate = 0;
 
 const canalColor: Record<string, string> = {
   Radio: "#fbbf24",
-  Digital: "#7b9fff",
   Print: "#34d399",
   Affichage: "#f87171",
   TV: "#a78bfa",
@@ -13,7 +12,6 @@ const canalColor: Record<string, string> = {
 
 const canalEmoji: Record<string, string> = {
   Radio: "🎙",
-  Digital: "💻",
   Print: "📰",
   Affichage: "📋",
   TV: "📺",

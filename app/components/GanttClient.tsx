@@ -4,7 +4,6 @@ import React, { useState } from "react";
 
 const canalColor: Record<string, string> = {
   Radio: "#fbbf24",
-  Digital: "#7b9fff",
   Print: "#34d399",
   Affichage: "#f87171",
   TV: "#a78bfa",
@@ -12,7 +11,6 @@ const canalColor: Record<string, string> = {
 
 const canalEmoji: Record<string, string> = {
   Radio: "🎙",
-  Digital: "💻",
   Print: "📰",
   Affichage: "📋",
   TV: "📺",
@@ -31,7 +29,7 @@ const statutColor: Record<string, { bg: string; color: string }> = {
   "Annulé": { bg: "#fee2e2", color: "#dc2626" },
 };
 
-const CANAUX = ["Radio", "Digital", "Print", "Affichage", "TV"];
+const CANAUX = ["Radio", "Print", "Affichage", "TV"];
 const STATUTS = ["Planifié", "En cours", "Terminé", "Annulé"];
 const NUM_WEEKS = 10;
 
