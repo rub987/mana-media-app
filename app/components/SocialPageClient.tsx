@@ -28,7 +28,7 @@ const offreBadge: Record<string, { bg: string; color: string }> = {
   START: { bg: "#f3f4f6", color: "#6b7280" },
 };
 
-const MOIS_FR = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+import React from "react";
 
 function parseDate(d: string) {
   const [year, month, day] = d.split("T")[0].split("-").map(Number);
@@ -47,7 +47,36 @@ function fmtBudget(n: number | null) {
   return `${n} F`;
 }
 
-function CalendrierView({
+const NUM_WEEKS = 10;
+
+const offreBadge: Record<string, { bg: string; color: string }> = {
+  PREMIUM: { bg: "#f3e8ff", color: "#7c3aed" },
+  PERFORMANCE: { bg: "#dbeafe", color: "#1d4ed8" },
+  START: { bg: "#f3f4f6", color: "#6b7280" },
+};
+
+function getMondayOf(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function isCampagneActiveInWeek(c: CampagneWithClient, weekStart: Date, weekEnd: Date): boolean {
+  const start = parseDate(c.date_debut);
+  const end = c.date_fin ? parseDate(c.date_fin) : new Date(9999, 0, 1);
+  return start <= weekEnd && end >= weekStart;
+}
+
+function GanttSocialView({
   campagnes,
   plateformeColor,
   plateformeIcon,
@@ -58,139 +87,149 @@ function CalendrierView({
   plateformeIcon: Record<string, string>;
   statutColor: Record<string, { bg: string; color: string }>;
 }) {
-  const now = new Date();
-  const [annee, setAnnee] = useState(now.getFullYear());
-  const [mois, setMois] = useState(now.getMonth()); // 0-indexed
+  const [weekOffset, setWeekOffset] = useState(0);
 
-  const daysInMonth = new Date(annee, mois + 1, 0).getDate();
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const earliest = campagnes.length > 0 ? parseDate(campagnes[0].date_debut) : new Date();
+  const baseStart = getMondayOf(earliest);
+  const gridStart = addDays(baseStart, weekOffset * 7);
 
-  const monthStart = new Date(annee, mois, 1);
-  const monthEnd = new Date(annee, mois, daysInMonth, 23, 59, 59);
-
-  // campagnes actives pendant ce mois
-  const campagnesMois = campagnes.filter((c) => {
-    const debut = parseDate(c.date_debut);
-    const fin = c.date_fin ? parseDate(c.date_fin) : new Date(9999, 0, 1);
-    return debut <= monthEnd && fin >= monthStart;
+  const weeks = Array.from({ length: NUM_WEEKS }, (_, i) => {
+    const start = addDays(gridStart, i * 7);
+    const end = addDays(start, 6);
+    return {
+      start,
+      end,
+      label: `S${i + 1}`,
+      date: start.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }),
+    };
   });
 
-  function prevMonth() {
-    if (mois === 0) { setMois(11); setAnnee(a => a - 1); }
-    else setMois(m => m - 1);
-  }
-  function nextMonth() {
-    if (mois === 11) { setMois(0); setAnnee(a => a + 1); }
-    else setMois(m => m + 1);
-  }
+  const moisLabel = (() => {
+    const debut = gridStart.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    const fin = addDays(gridStart, (NUM_WEEKS - 1) * 7 + 6).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    return debut === fin ? debut : `${debut} — ${fin}`;
+  })();
 
-  // calcul position/largeur de la barre pour une campagne dans ce mois
-  function barStyle(c: CampagneWithClient) {
-    const debut = parseDate(c.date_debut);
-    const fin = c.date_fin ? parseDate(c.date_fin) : new Date(annee, mois, daysInMonth);
-    const startDay = Math.max(1, debut <= monthStart ? 1 : debut.getDate());
-    const endDay = Math.min(daysInMonth, fin >= monthEnd ? daysInMonth : fin.getDate());
-    const left = ((startDay - 1) / daysInMonth) * 100;
-    const width = ((endDay - startDay + 1) / daysInMonth) * 100;
-    const color = plateformeColor[c.plateforme] || "#7b9fff";
-    return { left: `${left}%`, width: `${Math.max(width, 1)}%`, color };
+  // Group by client
+  const byClient = new Map<string, { id: string; nom: string; offre: string; campagnes: CampagneWithClient[] }>();
+  for (const c of campagnes) {
+    if (!byClient.has(c.client_id)) {
+      byClient.set(c.client_id, { id: c.client_id, nom: c.clients?.nom, offre: c.clients?.offre, campagnes: [] });
+    }
+    byClient.get(c.client_id)!.campagnes.push(c);
   }
-
-  const today = new Date();
-  const todayPct = annee === today.getFullYear() && mois === today.getMonth()
-    ? ((today.getDate() - 1) / daysInMonth) * 100
-    : null;
+  const clients = Array.from(byClient.values());
 
   return (
     <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
-      {/* Navigation mois */}
+      {/* Header navigation */}
       <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <button onClick={prevMonth} style={{ background: "none", border: "1px solid #e5e7eb", borderRadius: "6px", padding: "4px 10px", cursor: "pointer", fontSize: "14px", color: "#555" }}>‹</button>
-        <span style={{ fontSize: "15px", fontWeight: 700, color: "#1a1a2e" }}>
-          {MOIS_FR[mois]} {annee}
-        </span>
-        <button onClick={nextMonth} style={{ background: "none", border: "1px solid #e5e7eb", borderRadius: "6px", padding: "4px 10px", cursor: "pointer", fontSize: "14px", color: "#555" }}>›</button>
-      </div>
-
-      {/* En-tête jours */}
-      <div style={{ padding: "0 20px", borderBottom: "1px solid #f0f0f0", overflowX: "auto" }}>
-        <div style={{ display: "flex", minWidth: "600px", position: "relative", paddingLeft: "220px" }}>
-          {days.map((d) => (
-            <div key={d} style={{
-              flex: 1,
-              textAlign: "center",
-              fontSize: "10px",
-              color: annee === today.getFullYear() && mois === today.getMonth() && d === today.getDate() ? "#7b9fff" : "#bbb",
-              fontWeight: annee === today.getFullYear() && mois === today.getMonth() && d === today.getDate() ? 700 : 400,
-              padding: "8px 0",
-              borderLeft: "1px solid #f0f0f0",
-            }}>
-              {d}
-            </div>
-          ))}
+        <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Calendrier — {moisLabel}</h3>
+        <div style={{ display: "flex", gap: "6px" }}>
+          <button
+            onClick={() => setWeekOffset(o => o - NUM_WEEKS)}
+            style={{ padding: "5px 12px", border: "1px solid #e5e7eb", borderRadius: "6px", fontSize: "13px", cursor: "pointer", background: "#fff", color: "#374151" }}
+          >
+            ← Précédent
+          </button>
+          {weekOffset !== 0 && (
+            <button
+              onClick={() => setWeekOffset(0)}
+              style={{ padding: "5px 12px", border: "1px solid #e5e7eb", borderRadius: "6px", fontSize: "12px", cursor: "pointer", background: "#fff", color: "#888" }}
+            >
+              Aujourd'hui
+            </button>
+          )}
+          <button
+            onClick={() => setWeekOffset(o => o + NUM_WEEKS)}
+            style={{ padding: "5px 12px", border: "1px solid #e5e7eb", borderRadius: "6px", fontSize: "13px", cursor: "pointer", background: "#fff", color: "#374151" }}
+          >
+            Suivant →
+          </button>
         </div>
       </div>
 
-      {/* Rangées campagnes */}
-      <div style={{ overflowX: "auto" }}>
-        {campagnesMois.length === 0 ? (
-          <div style={{ padding: "32px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>
-            Aucune campagne active ce mois.
-          </div>
-        ) : (
-          campagnesMois.map((c) => {
-            const { left, width, color } = barStyle(c);
-            const sc = statutColor[c.statut] || { bg: "#f3f4f6", color: "#6b7280" };
-            return (
-              <div key={c.id} style={{ display: "flex", alignItems: "center", minWidth: "600px", borderBottom: "1px solid #f5f5f5", position: "relative" }}>
-                {/* Infos campagne */}
-                <div style={{ width: "220px", flexShrink: 0, padding: "10px 16px", borderRight: "1px solid #f0f0f0" }}>
-                  <Link href={`/clients/${c.client_id}`} style={{ textDecoration: "none" }}>
-                    <div style={{ fontSize: "12px", fontWeight: 600, color: "#1a1a2e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {c.clients?.nom}
-                    </div>
-                  </Link>
-                  <div style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}>
-                    {plateformeIcon[c.plateforme]} {c.plateforme} · {c.type_campagne}
-                  </div>
-                  <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 600, background: sc.bg, color: sc.color, marginTop: "3px" }}>
-                    {c.statut}
-                  </span>
-                </div>
-
-                {/* Zone Gantt */}
-                <div style={{ flex: 1, position: "relative", height: "48px" }}>
-                  {/* Ligne today */}
-                  {todayPct !== null && (
-                    <div style={{ position: "absolute", top: 0, bottom: 0, left: `${todayPct}%`, width: "1px", background: "#7b9fff", opacity: 0.5, zIndex: 1 }} />
-                  )}
-                  {/* Barre campagne */}
-                  <div style={{
-                    position: "absolute",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    left,
-                    width,
-                    height: "22px",
-                    background: color,
-                    borderRadius: "4px",
-                    opacity: 0.85,
-                    display: "flex",
-                    alignItems: "center",
-                    paddingLeft: "6px",
-                    overflow: "hidden",
-                    zIndex: 2,
-                  }}>
-                    <span style={{ fontSize: "10px", fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {c.budget_total ? fmtBudget(c.budget_total) : c.objectif || ""}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+      {campagnes.length === 0 ? (
+        <div style={{ padding: "48px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>
+          Aucune campagne sur cette période.
+        </div>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", minWidth: "800px" }}>
+            <thead>
+              <tr style={{ background: "#fafafa" }}>
+                <th style={{ textAlign: "left", padding: "10px 16px", width: "200px", color: "#888", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #f0f0f0" }}>
+                  Client / Campagne
+                </th>
+                {weeks.map((w, i) => {
+                  const isCurrentWeek = w.start <= new Date() && new Date() <= w.end;
+                  return (
+                    <th key={i} style={{ textAlign: "center", padding: "10px 4px", color: isCurrentWeek ? "#1d4ed8" : "#888", fontSize: "11px", borderBottom: "1px solid #f0f0f0", minWidth: "64px", background: isCurrentWeek ? "#f0f4ff" : "transparent" }}>
+                      {w.label}<br />
+                      <span style={{ fontSize: "10px", color: isCurrentWeek ? "#7b9fff" : "#bbb" }}>{w.date}</span>
+                    </th>
+                  );
+                })}
+                <th style={{ textAlign: "right", padding: "10px 16px", color: "#888", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "1px solid #f0f0f0" }}>
+                  Budget
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {clients.map((client) => (
+                <React.Fragment key={client.id}>
+                  <tr style={{ background: "#f8f9fc" }}>
+                    <td colSpan={NUM_WEEKS + 2} style={{ padding: "8px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <Link href={`/clients/${client.id}`} style={{ fontSize: "12px", fontWeight: 700, color: "#1a1a2e", textDecoration: "none" }}>{client.nom}</Link>
+                        {client.offre && (
+                          <span style={{ display: "inline-block", padding: "2px 7px", borderRadius: "10px", fontSize: "10px", fontWeight: 600, background: offreBadge[client.offre]?.bg, color: offreBadge[client.offre]?.color }}>
+                            {client.offre}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                  {client.campagnes.map((c) => {
+                    const sc = statutColor[c.statut] || { bg: "#f3f4f6", color: "#6b7280" };
+                    const color = plateformeColor[c.plateforme] || "#7b9fff";
+                    return (
+                      <tr key={c.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
+                        <td style={{ padding: "10px 16px 10px 28px", fontSize: "12px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: color, flexShrink: 0 }} />
+                            <span>{plateformeIcon[c.plateforme]} {c.plateforme} · {c.type_campagne}</span>
+                            <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 600, background: sc.bg, color: sc.color }}>
+                              {c.statut}
+                            </span>
+                          </div>
+                        </td>
+                        {weeks.map((w, i) => {
+                          const active = isCampagneActiveInWeek(c, w.start, w.end);
+                          const isCurrentWeek = w.start <= new Date() && new Date() <= w.end;
+                          return (
+                            <td key={i} style={{ padding: "7px 4px", textAlign: "center", background: isCurrentWeek ? "#fafcff" : "transparent" }}>
+                              {active && (
+                                <div
+                                  style={{ height: "18px", borderRadius: "4px", background: color, opacity: c.statut === "Annulé" ? 0.3 : c.statut === "Terminé" ? 0.5 : 0.85 }}
+                                  title={`${c.plateforme} · ${c.statut}`}
+                                />
+                              )}
+                            </td>
+                          );
+                        })}
+                        <td style={{ padding: "10px 16px", textAlign: "right", color: "#555", fontSize: "12px", fontWeight: 500 }}>
+                          {fmtBudget(c.budget_total)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Légende plateformes */}
       <div style={{ padding: "12px 20px", borderTop: "1px solid #f0f0f0", display: "flex", gap: "16px", flexWrap: "wrap" }}>
@@ -200,10 +239,6 @@ function CalendrierView({
             {plateformeIcon[p]} {p}
           </div>
         ))}
-        <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: "#888" }}>
-          <span style={{ width: "1px", height: "12px", background: "#7b9fff", display: "inline-block" }} />
-          Aujourd'hui
-        </div>
       </div>
     </div>
   );
@@ -320,9 +355,9 @@ export default function SocialPageClient({
         )}
       </div>
 
-      {/* Vue calendrier */}
+      {/* Vue calendrier (Gantt par semaines) */}
       {vue === "calendrier" ? (
-        <CalendrierView
+        <GanttSocialView
           campagnes={filtered}
           plateformeColor={plateformeColor}
           plateformeIcon={plateformeIcon}
