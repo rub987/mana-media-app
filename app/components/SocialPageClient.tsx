@@ -47,12 +47,6 @@ function fmtBudget(n: number | null) {
 
 const NUM_WEEKS = 10;
 
-const offreBadge: Record<string, { bg: string; color: string }> = {
-  PREMIUM: { bg: "#f3e8ff", color: "#7c3aed" },
-  PERFORMANCE: { bg: "#dbeafe", color: "#1d4ed8" },
-  START: { bg: "#f3f4f6", color: "#6b7280" },
-};
-
 function getMondayOf(date: Date): Date {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
