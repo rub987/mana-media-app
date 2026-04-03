@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 
 type CampagneWithClient = {
@@ -27,8 +27,6 @@ const offreBadge: Record<string, { bg: string; color: string }> = {
   PERFORMANCE: { bg: "#dbeafe", color: "#1d4ed8" },
   START: { bg: "#f3f4f6", color: "#6b7280" },
 };
-
-import React from "react";
 
 function parseDate(d: string) {
   const [year, month, day] = d.split("T")[0].split("-").map(Number);
