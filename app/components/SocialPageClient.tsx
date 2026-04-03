@@ -275,7 +275,10 @@ function CalendrierMensuelView({
                 return (
                   <div key={c.id} style={{ display: "flex", alignItems: "center", minWidth: "600px", borderBottom: "1px solid #f5f5f5" }}>
                     <div style={{ width: "220px", flexShrink: 0, padding: "10px 16px 10px 28px", borderRight: "1px solid #f0f0f0" }}>
-                      <div style={{ fontSize: "11px", color: "#555" }}>{plateformeIcon[c.plateforme]} {c.plateforme} · {c.type_campagne}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#555" }}>
+                        <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: color, flexShrink: 0 }} />
+                        {plateformeIcon[c.plateforme]} {c.plateforme} · {c.type_campagne}
+                      </div>
                       <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 600, background: sc.bg, color: sc.color, marginTop: "3px" }}>{c.statut}</span>
                     </div>
                     <div style={{ flex: 1, position: "relative", height: "44px" }}>
