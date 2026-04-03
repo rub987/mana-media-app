@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { logActivity } from "@/utils/logActivity";
 import { sendPlanCreatedEmail } from "@/utils/sendEmail";
 import { createNotification } from "@/utils/createNotification";
+import { getTestMode } from "@/utils/getTestMode";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
   // Envoyer email au client si il a un accès portail
   const { data: clientFull } = await supabase.from("clients").select("contact_email, auth_user_id").eq("id", client_id).single();
   if (clientFull?.auth_user_id && clientFull?.contact_email) {
+    const testMode = await getTestMode();
     await sendPlanCreatedEmail({
       to: clientFull.contact_email,
       clientNom: client?.nom || "",
@@ -42,6 +44,8 @@ export async function POST(request: Request) {
       budget: parseInt(budget) || 0,
       dateDebut: date_debut,
       dateFin: date_fin,
+      testMode,
+      testEmail: testMode ? user?.email : undefined,
     }).catch(() => {}); // Ne jamais bloquer si l'email échoue
   }
 

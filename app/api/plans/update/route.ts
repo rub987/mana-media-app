@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { logActivity } from "@/utils/logActivity";
 import { sendPlanUpdatedEmail } from "@/utils/sendEmail";
 import { createNotification } from "@/utils/createNotification";
+import { getTestMode } from "@/utils/getTestMode";
 
 export async function PUT(request: Request) {
   const body = await request.json();
@@ -58,11 +59,14 @@ export async function PUT(request: Request) {
   // Envoyer email au client si modifications significatives
   const { data: clientFull } = await supabase.from("clients").select("contact_email, auth_user_id").eq("id", data.client_id).single();
   if (clientFull?.auth_user_id && clientFull?.contact_email && diffs.length > 0) {
+    const testMode = await getTestMode();
     await sendPlanUpdatedEmail({
       to: clientFull.contact_email,
       clientNom: client?.nom || "",
       canal,
       changes: diffs.join(" · "),
+      testMode,
+      testEmail: testMode ? user?.email : undefined,
     }).catch(() => {});
   }
 

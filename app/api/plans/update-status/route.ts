@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { logActivity } from "@/utils/logActivity";
 import { sendPlanStatusEmail } from "@/utils/sendEmail";
 import { createNotification } from "@/utils/createNotification";
+import { getTestMode } from "@/utils/getTestMode";
 
 export async function POST(request: Request) {
   // Vérification du secret (cron Vercel ou appel manuel admin)
@@ -53,13 +54,15 @@ export async function POST(request: Request) {
     }
   }
 
+  const testMode = await getTestMode();
+
   // Appliquer les mises à jour + envoyer emails
   for (const u of updates) {
     await supabase.from("plans_media").update({ statut: u.newStatut }).eq("id", u.id);
     updated++;
 
-    // Email si passage à "En cours" ou "Terminé"
-    if (u.newStatut === "En cours" || u.newStatut === "Terminé") {
+    // Email si passage à "En cours" ou "Terminé" (ignoré si mode test actif)
+    if (!testMode && (u.newStatut === "En cours" || u.newStatut === "Terminé")) {
       const { data: planData } = await supabase
         .from("plans_media")
         .select("canal, client_id")

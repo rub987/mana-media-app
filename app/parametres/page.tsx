@@ -4,6 +4,7 @@ import Link from "next/link";
 import SyncContactsButton from "../components/SyncContactsButton";
 import SyncStatusButton from "../components/SyncStatusButton";
 import TeamSection from "../components/TeamSection";
+import TestModeToggle from "../components/TestModeToggle";
 
 export const revalidate = 0;
 
@@ -15,11 +16,12 @@ function formatDate(d: string) {
 export default async function Parametres() {
   const supabase = await createClient();
 
-  const [{ data: { user } }, { data: zohoToken }, { data: clients }, { data: plans }] = await Promise.all([
+  const [{ data: { user } }, { data: zohoToken }, { data: clients }, { data: plans }, { data: appSettings }] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from("zoho_tokens").select("*").eq("id", 1).single(),
     supabase.from("clients").select("id"),
     supabase.from("plans_media").select("id"),
+    supabase.from("app_settings").select("test_mode").eq("id", 1).single(),
   ]);
 
   const zohoConnected = !!zohoToken?.refresh_token;
@@ -97,6 +99,24 @@ export default async function Parametres() {
           </div>
 
           <TeamSection />
+
+          {/* Mode test emails */}
+          <div style={{ background: "#fff", borderRadius: "10px", border: `1px solid ${appSettings?.test_mode ? "#f59e0b" : "#e5e7eb"}`, overflow: "hidden", marginBottom: "16px" }}>
+            <div style={{ padding: "14px 20px", borderBottom: `1px solid ${appSettings?.test_mode ? "#fef3c7" : "#f0f0f0"}`, display: "flex", justifyContent: "space-between", alignItems: "center", background: appSettings?.test_mode ? "#fffbeb" : "#fff" }}>
+              <span style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Notifications email</span>
+              {appSettings?.test_mode && (
+                <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: "#fef3c7", color: "#92400e" }}>
+                  MODE TEST ACTIF
+                </span>
+              )}
+            </div>
+            <div style={{ padding: "16px 20px" }}>
+              <div style={{ fontSize: "12px", color: "#888", marginBottom: "16px" }}>
+                En mode test, les emails destinés aux clients sont redirigés vers votre adresse ({user?.email}). Utile pour tester sans notifier vos clients.
+              </div>
+              <TestModeToggle initialValue={!!appSettings?.test_mode} />
+            </div>
+          </div>
 
           {/* Statuts des plans */}
           <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "16px" }}>
