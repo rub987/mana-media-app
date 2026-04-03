@@ -239,38 +239,57 @@ function CalendrierMensuelView({
         </div>
       </div>
 
-      {/* Rangées campagnes */}
+      {/* Rangées campagnes groupées par client */}
       <div style={{ overflowX: "auto" }}>
         {campagnesMois.length === 0 ? (
           <div style={{ padding: "32px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>Aucune campagne active ce mois.</div>
-        ) : campagnesMois.map((c) => {
-          const debut = parseDate(c.date_debut);
-          const fin = c.date_fin ? parseDate(c.date_fin) : new Date(annee, mois, daysInMonth);
-          const startDay = Math.max(1, debut <= monthStart ? 1 : debut.getDate());
-          const endDay = Math.min(daysInMonth, fin >= monthEnd ? daysInMonth : fin.getDate());
-          const left = `${((startDay - 1) / daysInMonth) * 100}%`;
-          const width = `${Math.max(((endDay - startDay + 1) / daysInMonth) * 100, 1)}%`;
-          const color = plateformeColor[c.plateforme] || "#7b9fff";
-          const sc = statutColor[c.statut] || { bg: "#f3f4f6", color: "#6b7280" };
-
-          return (
-            <div key={c.id} style={{ display: "flex", alignItems: "center", minWidth: "600px", borderBottom: "1px solid #f5f5f5", position: "relative" }}>
-              <div style={{ width: "220px", flexShrink: 0, padding: "10px 16px", borderRight: "1px solid #f0f0f0" }}>
-                <Link href={`/clients/${c.client_id}`} style={{ textDecoration: "none" }}>
-                  <div style={{ fontSize: "12px", fontWeight: 600, color: "#1a1a2e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.clients?.nom}</div>
-                </Link>
-                <div style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}>{plateformeIcon[c.plateforme]} {c.plateforme} · {c.type_campagne}</div>
-                <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 600, background: sc.bg, color: sc.color, marginTop: "3px" }}>{c.statut}</span>
-              </div>
-              <div style={{ flex: 1, position: "relative", height: "48px" }}>
-                {todayPct !== null && <div style={{ position: "absolute", top: 0, bottom: 0, left: `${todayPct}%`, width: "1px", background: "#7b9fff", opacity: 0.5, zIndex: 1 }} />}
-                <div style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", left, width, height: "22px", background: color, borderRadius: "4px", opacity: 0.85, display: "flex", alignItems: "center", paddingLeft: "6px", overflow: "hidden", zIndex: 2 }}>
-                  <span style={{ fontSize: "10px", fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.budget_total ? fmtBudget(c.budget_total) : c.objectif || ""}</span>
+        ) : (() => {
+          const byClient = new Map<string, { id: string; nom: string; offre: string; campagnes: CampagneWithClient[] }>();
+          for (const c of campagnesMois) {
+            if (!byClient.has(c.client_id))
+              byClient.set(c.client_id, { id: c.client_id, nom: c.clients?.nom, offre: c.clients?.offre, campagnes: [] });
+            byClient.get(c.client_id)!.campagnes.push(c);
+          }
+          return Array.from(byClient.values()).map((client) => (
+            <React.Fragment key={client.id}>
+              {/* Ligne client */}
+              <div style={{ display: "flex", alignItems: "center", minWidth: "600px", background: "#f8f9fc", borderBottom: "1px solid #f0f0f0" }}>
+                <div style={{ width: "220px", flexShrink: 0, padding: "8px 16px", borderRight: "1px solid #f0f0f0" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <Link href={`/clients/${client.id}`} style={{ fontSize: "12px", fontWeight: 700, color: "#1a1a2e", textDecoration: "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{client.nom}</Link>
+                    {client.offre && <span style={{ display: "inline-block", padding: "2px 7px", borderRadius: "10px", fontSize: "10px", fontWeight: 600, background: offreBadge[client.offre]?.bg, color: offreBadge[client.offre]?.color, flexShrink: 0 }}>{client.offre}</span>}
+                  </div>
                 </div>
+                <div style={{ flex: 1 }} />
               </div>
-            </div>
-          );
-        })}
+              {/* Lignes campagnes */}
+              {client.campagnes.map((c) => {
+                const debut = parseDate(c.date_debut);
+                const fin = c.date_fin ? parseDate(c.date_fin) : new Date(annee, mois, daysInMonth);
+                const startDay = Math.max(1, debut <= monthStart ? 1 : debut.getDate());
+                const endDay = Math.min(daysInMonth, fin >= monthEnd ? daysInMonth : fin.getDate());
+                const left = `${((startDay - 1) / daysInMonth) * 100}%`;
+                const width = `${Math.max(((endDay - startDay + 1) / daysInMonth) * 100, 1)}%`;
+                const color = plateformeColor[c.plateforme] || "#7b9fff";
+                const sc = statutColor[c.statut] || { bg: "#f3f4f6", color: "#6b7280" };
+                return (
+                  <div key={c.id} style={{ display: "flex", alignItems: "center", minWidth: "600px", borderBottom: "1px solid #f5f5f5" }}>
+                    <div style={{ width: "220px", flexShrink: 0, padding: "10px 16px 10px 28px", borderRight: "1px solid #f0f0f0" }}>
+                      <div style={{ fontSize: "11px", color: "#555" }}>{plateformeIcon[c.plateforme]} {c.plateforme} · {c.type_campagne}</div>
+                      <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 600, background: sc.bg, color: sc.color, marginTop: "3px" }}>{c.statut}</span>
+                    </div>
+                    <div style={{ flex: 1, position: "relative", height: "44px" }}>
+                      {todayPct !== null && <div style={{ position: "absolute", top: 0, bottom: 0, left: `${todayPct}%`, width: "1px", background: "#7b9fff", opacity: 0.5, zIndex: 1 }} />}
+                      <div style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", left, width, height: "20px", background: color, borderRadius: "4px", opacity: c.statut === "Annulé" ? 0.3 : c.statut === "Terminé" ? 0.5 : 0.85, display: "flex", alignItems: "center", paddingLeft: "6px", overflow: "hidden", zIndex: 2 }}>
+                        <span style={{ fontSize: "10px", fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.budget_total ? fmtBudget(c.budget_total) : c.objectif || ""}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ));
+        })()}
       </div>
 
       <div style={{ padding: "12px 20px", borderTop: "1px solid #f0f0f0", display: "flex", gap: "16px", flexWrap: "wrap" }}>
