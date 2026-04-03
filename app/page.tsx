@@ -2,65 +2,113 @@ import Link from "next/link";
 import AuthHashRedirect from "./components/AuthHashRedirect";
 import { createClient } from "@/utils/supabase/server";
 import ContactForm from "./components/ContactForm";
+import FAQSection from "./components/FAQSection";
 
-const offres = [
+const features = [
   {
-    nom: "START",
-    prix: "20 000",
-    badgeBg: "#f3f4f6",
-    badgeColor: "#6b7280",
-    cible: "Petits commerces & budgets limités",
+    icon: "🗂️",
+    titre: "CRM clients",
+    desc: "Fiches complètes, offres, budgets, contacts. Synchronisation automatique avec ZOHO CRM.",
+  },
+  {
+    icon: "📅",
+    titre: "Plans médias",
+    desc: "Créez et visualisez vos plans Radio, TV, Print, Affichage en vue Gantt interactive.",
+  },
+  {
+    icon: "📱",
+    titre: "Campagnes digitales",
+    desc: "Meta, Google Ads, TikTok, LinkedIn, YouTube. Suivi budgétaire et calendrier mensuel.",
+  },
+  {
+    icon: "📊",
+    titre: "Rapports PDF",
+    desc: "Générez des rapports professionnels en un clic. Parfaits pour vos rendez-vous clients.",
+  },
+  {
+    icon: "🔐",
+    titre: "Portail client",
+    desc: "Chaque annonceur accède à son espace dédié pour consulter ses campagnes en temps réel.",
+  },
+  {
+    icon: "👥",
+    titre: "Gestion d'équipe",
+    desc: "Rôles Admin et Community Manager. Chaque CM ne voit que ses clients assignés.",
+  },
+];
+
+const steps = [
+  {
+    num: "01",
+    titre: "Créez votre espace",
+    desc: "Invitez votre équipe, importez vos clients depuis ZOHO ou créez-les manuellement.",
+  },
+  {
+    num: "02",
+    titre: "Pilotez vos campagnes",
+    desc: "Plans médias, campagnes digitales, notes internes — tout au même endroit.",
+  },
+  {
+    num: "03",
+    titre: "Impressionnez vos clients",
+    desc: "Rapports PDF en 1 clic et portail client dédié pour une relation transparente.",
+  },
+];
+
+const plans = [
+  {
+    nom: "STARTER",
+    prix: "9 900",
+    euro: "83",
+    cible: "Petites agences & indépendants",
     dark: false,
     populaire: false,
     inclus: [
-      "Diagnostic rapide (1 échange)",
-      "Plan média simplifié (2 canaux)",
-      "Accès tarifs négociés",
-      "Suivi mensuel léger",
+      "2 utilisateurs",
+      "Jusqu'à 15 clients",
+      "Plans médias & campagnes digitales",
+      "Rapports PDF",
+      "Support standard",
     ],
+    nonInclus: ["Portail client", "Rôles Community Manager", "Sync ZOHO CRM"],
   },
   {
-    nom: "PERFORMANCE",
-    prix: "80 000 – 120 000",
-    badgeBg: "#dbeafe",
-    badgeColor: "#1d4ed8",
-    cible: "PME, tourisme & enseignes",
+    nom: "AGENCE",
+    prix: "24 900",
+    euro: "209",
+    cible: "Agences & régies locales",
     dark: true,
     populaire: true,
     inclus: [
-      "Stratégie média complète",
-      "Gestion multi-supports",
-      "Optimisation mensuelle",
-      "Reporting clair & régulier",
-      "Réservation & coordination médias",
+      "Jusqu'à 8 utilisateurs",
+      "Clients illimités",
+      "Plans médias & campagnes digitales",
+      "Rapports PDF",
+      "Portail client",
+      "Rôles Community Manager",
+      "Synchronisation ZOHO CRM",
+      "Support prioritaire",
     ],
+    nonInclus: [],
   },
   {
-    nom: "PREMIUM",
-    prix: "150 000+",
-    badgeBg: "#f3e8ff",
-    badgeColor: "#7c3aed",
-    cible: "Gros budgets & institutionnels",
+    nom: "RÉGIE",
+    prix: null,
+    euro: null,
+    cible: "Grandes régies & groupes",
     dark: false,
     populaire: false,
     inclus: [
-      "Stratégie annuelle complète",
-      "Achat média optimisé",
-      "Négociation exclusive médias",
-      "Dashboard + analyse ROI",
-      "Directeur marketing externalisé",
+      "Utilisateurs illimités",
+      "Clients illimités",
+      "Toutes les fonctionnalités",
+      "Personnalisation aux couleurs de l'agence",
+      "Onboarding accompagné",
+      "Support dédié",
     ],
+    nonInclus: [],
   },
 ];
-
-const avantages = [
-  { icon: "🎯", titre: "Expertise locale", desc: "Connaissance approfondie des médias polynésiens — Radio 1, TNTV, La Dépêche, affichage urbain." },
-  { icon: "📊", titre: "Pilotage en temps réel", desc: "Tableau de bord dédié pour suivre vos campagnes, budgets et ROI à tout moment." },
-  { icon: "🤝", titre: "Interlocuteur unique", desc: "Un seul contact pour tous vos supports. Vous gagnez du temps, nous gérons la complexité." },
-  { icon: "📈", titre: "Résultats mesurés", desc: "Chaque campagne est suivie et optimisée. Nous vous montrons ce qui fonctionne." },
-];
-
-const canaux = ["Radio", "Digital", "Print", "Affichage", "Télévision"];
 
 export default async function Home() {
   const supabase = await createClient();
@@ -73,109 +121,157 @@ export default async function Home() {
 
       {/* NAV */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid #e5e7eb", padding: "0 48px", display: "flex", alignItems: "center", justifyContent: "space-between", height: "64px" }}>
-        <div>
-          <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "1px", color: "#1a1a2e" }}>PilotMedia</span>
-          <span style={{ fontSize: "11px", color: "#888", letterSpacing: "2px", marginLeft: "10px" }}>Le cockpit de votre régie pub.</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.5px", color: "#1a1a2e" }}>PilotMedia</span>
         </div>
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          <a href="#offres" style={{ padding: "8px 14px", fontSize: "13px", color: "#555", textDecoration: "none" }}>Offres</a>
+        <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+          <a href="#fonctionnalites" style={{ padding: "8px 14px", fontSize: "13px", color: "#555", textDecoration: "none" }}>Fonctionnalités</a>
+          <a href="#tarifs" style={{ padding: "8px 14px", fontSize: "13px", color: "#555", textDecoration: "none" }}>Tarifs</a>
+          <a href="#faq" style={{ padding: "8px 14px", fontSize: "13px", color: "#555", textDecoration: "none" }}>FAQ</a>
           <a href="#contact" style={{ padding: "8px 14px", fontSize: "13px", color: "#555", textDecoration: "none" }}>Contact</a>
           {isAdmin ? (
-            <Link href="/dashboard" style={{ padding: "8px 18px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
-              Backoffice →
+            <Link href="/dashboard" style={{ marginLeft: "8px", padding: "8px 18px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
+              Tableau de bord →
             </Link>
           ) : (
-            <Link href="/login" style={{ padding: "8px 18px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
-              Accès client →
+            <Link href="/login" style={{ marginLeft: "8px", padding: "8px 18px", background: "#1a1a2e", color: "#fff", borderRadius: "6px", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
+              Connexion →
             </Link>
           )}
         </div>
       </nav>
 
       {/* HERO */}
-      <section style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #2a2a4e 60%, #1a1a2e 100%)", padding: "96px 48px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <section style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #2a2a4e 60%, #1a1a2e 100%)", padding: "100px 48px 80px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 20% 50%, rgba(123,159,255,0.15) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(167,139,250,0.1) 0%, transparent 50%)" }} />
-        <div style={{ position: "relative", maxWidth: "760px", margin: "0 auto" }}>
-          <div style={{ display: "inline-block", padding: "4px 14px", background: "rgba(123,159,255,0.2)", borderRadius: "20px", fontSize: "12px", fontWeight: 600, color: "#7b9fff", letterSpacing: "1px", marginBottom: "24px" }}>
-            RÉGIE PUBLICITAIRE — POLYNÉSIE FRANÇAISE
+        <div style={{ position: "relative", maxWidth: "780px", margin: "0 auto" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 14px", background: "rgba(123,159,255,0.15)", borderRadius: "20px", fontSize: "12px", fontWeight: 600, color: "#7b9fff", letterSpacing: "1px", marginBottom: "28px", border: "1px solid rgba(123,159,255,0.2)" }}>
+            ✦ THE AD AGENCY OS
           </div>
-          <h1 style={{ fontSize: "52px", fontWeight: 800, color: "#fff", lineHeight: 1.15, marginBottom: "20px", letterSpacing: "-0.5px" }}>
-            Votre stratégie média,<br />
-            <span style={{ background: "linear-gradient(90deg, #7b9fff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>pilotée par des experts</span>
+          <h1 style={{ fontSize: "56px", fontWeight: 800, color: "#fff", lineHeight: 1.1, marginBottom: "20px", letterSpacing: "-1px" }}>
+            Le cockpit de votre<br />
+            <span style={{ background: "linear-gradient(90deg, #7b9fff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>régie publicitaire.</span>
           </h1>
-          <p style={{ fontSize: "18px", color: "#aaa", lineHeight: 1.6, marginBottom: "36px", maxWidth: "560px", margin: "0 auto 36px" }}>
-            PilotMedia gère vos campagnes publicitaires sur tous les supports locaux. Radio, digital, print, affichage — un seul interlocuteur, des résultats mesurés.
+          <p style={{ fontSize: "18px", color: "#9ca3b0", lineHeight: 1.7, marginBottom: "40px", maxWidth: "560px", margin: "0 auto 40px" }}>
+            PilotMedia centralise vos clients, plans médias, campagnes digitales et rapports dans un seul outil — conçu pour les régies locales, testé sur le terrain en Polynésie française.
           </p>
-          <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-            <a href="#offres" style={{ padding: "14px 28px", background: "#7b9fff", color: "#fff", borderRadius: "8px", fontSize: "15px", fontWeight: 700, textDecoration: "none" }}>
-              Découvrir nos offres
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            <a href="#contact" style={{ padding: "14px 28px", background: "#7b9fff", color: "#fff", borderRadius: "8px", fontSize: "15px", fontWeight: 700, textDecoration: "none" }}>
+              Demander une démo →
             </a>
-            <a href="#contact" style={{ padding: "14px 28px", background: "rgba(255,255,255,0.08)", color: "#fff", borderRadius: "8px", fontSize: "15px", fontWeight: 600, textDecoration: "none", border: "1px solid rgba(255,255,255,0.15)" }}>
-              Nous contacter
+            <a href="#fonctionnalites" style={{ padding: "14px 28px", background: "rgba(255,255,255,0.07)", color: "#fff", borderRadius: "8px", fontSize: "15px", fontWeight: 600, textDecoration: "none", border: "1px solid rgba(255,255,255,0.12)" }}>
+              Voir les fonctionnalités
             </a>
           </div>
         </div>
 
-        {/* Canaux */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "56px", flexWrap: "wrap" }}>
-          {canaux.map((c) => (
-            <span key={c} style={{ padding: "6px 16px", background: "rgba(255,255,255,0.06)", borderRadius: "20px", fontSize: "12px", color: "#888", border: "1px solid rgba(255,255,255,0.08)" }}>
+        {/* Plateformes */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "60px", flexWrap: "wrap" }}>
+          {["Radio", "TV", "Print", "Affichage", "Meta", "Google Ads", "TikTok Ads", "LinkedIn Ads", "YouTube"].map((c) => (
+            <span key={c} style={{ padding: "5px 14px", background: "rgba(255,255,255,0.05)", borderRadius: "20px", fontSize: "12px", color: "#666", border: "1px solid rgba(255,255,255,0.07)" }}>
               {c}
             </span>
           ))}
         </div>
       </section>
 
-      {/* AVANTAGES */}
-      <section style={{ padding: "80px 48px", background: "#f5f6fa" }}>
+      {/* SOCIAL PROOF */}
+      <section style={{ padding: "28px 48px", background: "#f8f9fc", borderBottom: "1px solid #e5e7eb" }}>
+        <div style={{ maxWidth: "960px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "12px", color: "#aaa", textTransform: "uppercase", letterSpacing: "1px" }}>Utilisé au quotidien par</span>
+          <span style={{ fontSize: "14px", fontWeight: 700, color: "#1a1a2e" }}>RESOYU</span>
+          <span style={{ fontSize: "12px", color: "#bbb" }}>·</span>
+          <span style={{ fontSize: "13px", color: "#666" }}>Régie publicitaire — Polynésie française</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", background: "#dcfce7", borderRadius: "20px", fontSize: "11px", fontWeight: 600, color: "#16a34a" }}>
+            ● En production
+          </span>
+        </div>
+      </section>
+
+      {/* FONCTIONNALITÉS */}
+      <section id="fonctionnalites" style={{ padding: "80px 48px", background: "#fff" }}>
         <div style={{ maxWidth: "960px", margin: "0 auto" }}>
-          <h2 style={{ fontSize: "32px", fontWeight: 800, textAlign: "center", marginBottom: "8px" }}>Pourquoi PilotMedia ?</h2>
-          <p style={{ textAlign: "center", color: "#888", fontSize: "15px", marginBottom: "48px" }}>La seule régie pub locale qui pilote vos campagnes de A à Z</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px" }}>
-            {avantages.map((a) => (
-              <div key={a.titre} style={{ background: "#fff", borderRadius: "12px", padding: "24px", border: "1px solid #e5e7eb" }}>
-                <div style={{ fontSize: "28px", marginBottom: "12px" }}>{a.icon}</div>
-                <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "8px" }}>{a.titre}</div>
-                <div style={{ fontSize: "13px", color: "#666", lineHeight: 1.6 }}>{a.desc}</div>
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <h2 style={{ fontSize: "32px", fontWeight: 800, color: "#1a1a2e", marginBottom: "8px" }}>Tout ce dont votre régie a besoin</h2>
+            <p style={{ fontSize: "15px", color: "#888" }}>Un seul outil. Zéro Excel. Résultats visibles dès le premier mois.</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
+            {features.map((f) => (
+              <div key={f.titre} style={{ background: "#f8f9fc", borderRadius: "12px", padding: "28px 24px", border: "1px solid #e5e7eb", transition: "border-color 0.2s" }}>
+                <div style={{ fontSize: "32px", marginBottom: "14px" }}>{f.icon}</div>
+                <div style={{ fontSize: "15px", fontWeight: 700, color: "#1a1a2e", marginBottom: "8px" }}>{f.titre}</div>
+                <div style={{ fontSize: "13px", color: "#666", lineHeight: 1.6 }}>{f.desc}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* OFFRES */}
-      <section id="offres" style={{ padding: "80px 48px", background: "#fff" }}>
+      {/* COMMENT ÇA MARCHE */}
+      <section style={{ padding: "80px 48px", background: "#f8f9fc" }}>
+        <div style={{ maxWidth: "860px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <h2 style={{ fontSize: "32px", fontWeight: 800, color: "#1a1a2e", marginBottom: "8px" }}>Opérationnel en moins d'une heure</h2>
+            <p style={{ fontSize: "15px", color: "#888" }}>Pas de formation longue. Pas d'installation. Juste votre navigateur.</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px" }}>
+            {steps.map((s) => (
+              <div key={s.num} style={{ textAlign: "center", padding: "32px 20px" }}>
+                <div style={{ fontSize: "40px", fontWeight: 800, color: "#e5e7eb", marginBottom: "16px", letterSpacing: "-2px" }}>{s.num}</div>
+                <div style={{ fontSize: "15px", fontWeight: 700, color: "#1a1a2e", marginBottom: "10px" }}>{s.titre}</div>
+                <div style={{ fontSize: "13px", color: "#888", lineHeight: 1.6 }}>{s.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TARIFS */}
+      <section id="tarifs" style={{ padding: "80px 48px", background: "#fff" }}>
         <div style={{ maxWidth: "960px", margin: "0 auto" }}>
-          <h2 style={{ fontSize: "32px", fontWeight: 800, textAlign: "center", marginBottom: "8px" }}>Nos offres</h2>
-          <p style={{ textAlign: "center", color: "#888", fontSize: "15px", marginBottom: "48px" }}>Choisissez le niveau d'accompagnement adapté à votre activité</p>
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <h2 style={{ fontSize: "32px", fontWeight: 800, color: "#1a1a2e", marginBottom: "8px" }}>Tarifs simples et transparents</h2>
+            <p style={{ fontSize: "15px", color: "#888" }}>Sans engagement. Sans frais cachés. Premiers partenaires : 3 mois offerts.</p>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
-            {offres.map((o) => (
-              <div key={o.nom} style={{ borderRadius: "14px", border: o.dark ? "2px solid #7b9fff" : "1px solid #e5e7eb", overflow: "hidden", boxShadow: o.dark ? "0 8px 32px rgba(123,159,255,0.2)" : "none", position: "relative" }}>
-                {o.populaire && (
+            {plans.map((p) => (
+              <div key={p.nom} style={{ borderRadius: "14px", border: p.dark ? "2px solid #7b9fff" : "1px solid #e5e7eb", overflow: "hidden", boxShadow: p.dark ? "0 8px 40px rgba(123,159,255,0.2)" : "none", position: "relative" }}>
+                {p.populaire && (
                   <div style={{ position: "absolute", top: "16px", right: "16px", background: "#7b9fff", color: "#fff", fontSize: "10px", fontWeight: 700, padding: "3px 10px", borderRadius: "10px", letterSpacing: "0.5px" }}>
                     POPULAIRE
                   </div>
                 )}
-                <div style={{ background: o.dark ? "#1a1a2e" : "#f8f9fc", padding: "28px 24px", textAlign: "center", borderBottom: `1px solid ${o.dark ? "#2a2a4e" : "#e5e7eb"}` }}>
-                  <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "10px", fontSize: "11px", fontWeight: 700, background: o.badgeBg, color: o.badgeColor, marginBottom: "12px" }}>
-                    {o.nom}
-                  </span>
-                  <div style={{ fontSize: "30px", fontWeight: 800, color: o.dark ? "#fff" : "#1a1a2e" }}>
-                    {o.prix} <span style={{ fontSize: "13px", fontWeight: 400, color: o.dark ? "#aaa" : "#888" }}>F / mois</span>
-                  </div>
-                  <div style={{ fontSize: "12px", color: "#888", marginTop: "6px" }}>{o.cible}</div>
+                <div style={{ background: p.dark ? "#1a1a2e" : "#f8f9fc", padding: "28px 24px", borderBottom: `1px solid ${p.dark ? "#2a2a4e" : "#e5e7eb"}` }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: p.dark ? "#7b9fff" : "#888", letterSpacing: "1.5px", marginBottom: "12px" }}>{p.nom}</div>
+                  {p.prix ? (
+                    <>
+                      <div style={{ fontSize: "30px", fontWeight: 800, color: p.dark ? "#fff" : "#1a1a2e" }}>
+                        {p.prix} <span style={{ fontSize: "13px", fontWeight: 400, color: p.dark ? "#aaa" : "#888" }}>F CFP / mois</span>
+                      </div>
+                      <div style={{ fontSize: "12px", color: p.dark ? "#7b9fff" : "#aaa", marginTop: "4px" }}>≈ {p.euro} € / mois</div>
+                    </>
+                  ) : (
+                    <div style={{ fontSize: "26px", fontWeight: 800, color: "#1a1a2e" }}>Sur devis</div>
+                  )}
+                  <div style={{ fontSize: "12px", color: "#888", marginTop: "8px" }}>{p.cible}</div>
                 </div>
-                <div style={{ padding: "24px" }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    {o.inclus.map((item) => (
-                      <div key={item} style={{ display: "flex", gap: "8px", fontSize: "13px", color: "#374151", alignItems: "flex-start" }}>
-                        <span style={{ color: "#16a34a", flexShrink: 0, marginTop: "1px" }}>✓</span>
+                <div style={{ padding: "24px", background: p.dark ? "#0f0f1e" : "#fff" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
+                    {p.inclus.map((item) => (
+                      <div key={item} style={{ display: "flex", gap: "8px", fontSize: "13px", color: p.dark ? "#ccc" : "#374151", alignItems: "flex-start" }}>
+                        <span style={{ color: "#16a34a", flexShrink: 0 }}>✓</span>
+                        {item}
+                      </div>
+                    ))}
+                    {p.nonInclus.map((item) => (
+                      <div key={item} style={{ display: "flex", gap: "8px", fontSize: "13px", color: "#bbb", alignItems: "flex-start" }}>
+                        <span style={{ color: "#ddd", flexShrink: 0 }}>✕</span>
                         {item}
                       </div>
                     ))}
                   </div>
-                  <a href="#contact" style={{ display: "block", marginTop: "24px", padding: "11px", background: o.dark ? "#7b9fff" : "#1a1a2e", color: "#fff", borderRadius: "8px", fontSize: "13px", fontWeight: 600, textAlign: "center", textDecoration: "none" }}>
-                    Demander un devis →
+                  <a href="#contact" style={{ display: "block", marginTop: "24px", padding: "11px", background: p.dark ? "#7b9fff" : "#1a1a2e", color: "#fff", borderRadius: "8px", fontSize: "13px", fontWeight: 600, textAlign: "center", textDecoration: "none" }}>
+                    {p.prix ? "Commencer →" : "Nous contacter →"}
                   </a>
                 </div>
               </div>
@@ -184,24 +280,40 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <FAQSection />
+
       {/* CONTACT */}
-      <section id="contact" style={{ padding: "80px 48px", background: "#f5f6fa" }}>
+      <section id="contact" style={{ padding: "80px 48px", background: "#f8f9fc" }}>
         <div style={{ maxWidth: "560px", margin: "0 auto", textAlign: "center" }}>
-          <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>Parlons de votre projet</h2>
-          <p style={{ color: "#888", fontSize: "15px", marginBottom: "40px" }}>Contactez-nous pour un diagnostic gratuit de votre présence médiatique</p>
+          <h2 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px", color: "#1a1a2e" }}>Discutons de votre projet</h2>
+          <p style={{ color: "#888", fontSize: "15px", marginBottom: "40px" }}>
+            Démo gratuite, accès pilote, questions techniques — on vous répond sous 24h.
+          </p>
           <ContactForm />
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer style={{ background: "#1a1a2e", padding: "32px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
-        <div>
-          <div style={{ fontSize: "15px", fontWeight: 700, color: "#fff", letterSpacing: "1px" }}>PilotMedia</div>
-          <div style={{ fontSize: "11px", color: "#555", marginTop: "2px" }}>Régie publicitaire · RESOYU · Polynésie française</div>
+      <footer style={{ background: "#1a1a2e", padding: "40px 48px" }}>
+        <div style={{ maxWidth: "960px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+          <div>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: "#fff" }}>PilotMedia</div>
+            <div style={{ fontSize: "11px", color: "#555", marginTop: "3px" }}>Le cockpit de votre régie publicitaire. · RESOYU · Polynésie française</div>
+          </div>
+          <div style={{ display: "flex", gap: "24px", alignItems: "center", flexWrap: "wrap" }}>
+            <a href="#fonctionnalites" style={{ fontSize: "12px", color: "#555", textDecoration: "none" }}>Fonctionnalités</a>
+            <a href="#tarifs" style={{ fontSize: "12px", color: "#555", textDecoration: "none" }}>Tarifs</a>
+            <a href="#faq" style={{ fontSize: "12px", color: "#555", textDecoration: "none" }}>FAQ</a>
+            <a href="#contact" style={{ fontSize: "12px", color: "#555", textDecoration: "none" }}>Contact</a>
+            <Link href="/login" style={{ fontSize: "12px", color: "#444", textDecoration: "none" }}>
+              Connexion →
+            </Link>
+          </div>
         </div>
-        <Link href="/login" style={{ fontSize: "12px", color: "#555", textDecoration: "none" }}>
-          Accès administration →
-        </Link>
+        <div style={{ maxWidth: "960px", margin: "20px auto 0", paddingTop: "20px", borderTop: "1px solid #2a2a4e", fontSize: "11px", color: "#444", textAlign: "center" }}>
+          © 2026 PilotMedia · RESOYU · Tous droits réservés
+        </div>
       </footer>
 
     </div>
