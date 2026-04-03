@@ -99,6 +99,7 @@ export default function EmplacementsClient() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [selectedCommune, setSelectedCommune] = useState<string | null>(null);
+  const [flyToCoords, setFlyToCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   async function load() {
     const res = await fetch("/api/emplacements");
@@ -277,7 +278,7 @@ export default function EmplacementsClient() {
                           return (
                             <div
                               key={emp.id}
-                              onClick={() => handleEdit(emp)}
+                              onClick={() => { handleEdit(emp); setFlyToCoords({ lat: emp.latitude, lng: emp.longitude }); }}
                               style={{ padding: "10px 16px", borderBottom: "1px solid #f5f5f5", cursor: "pointer", display: "flex", gap: "10px", alignItems: "flex-start" }}
                             >
                               <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: sc.dot, flexShrink: 0, marginTop: "3px" }} />
@@ -310,6 +311,7 @@ export default function EmplacementsClient() {
               onMapClick={handleMapClick}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              flyToCoords={flyToCoords}
             />
           </div>
         </div>

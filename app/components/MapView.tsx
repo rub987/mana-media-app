@@ -1,6 +1,7 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
+import { useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -48,6 +49,14 @@ function createMarkerIcon(statut: string) {
   });
 }
 
+function FlyToController({ coords }: { coords: { lat: number; lng: number } | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (coords) map.flyTo([coords.lat, coords.lng], 17, { duration: 1.2 });
+  }, [coords, map]);
+  return null;
+}
+
 function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
   useMapEvents({
     click(e) {
@@ -62,11 +71,13 @@ export default function MapView({
   onMapClick,
   onEdit,
   onDelete,
+  flyToCoords,
 }: {
   emplacements: Emplacement[];
   onMapClick: (lat: number, lng: number) => void;
   onEdit: (e: Emplacement) => void;
   onDelete: (id: string) => void;
+  flyToCoords?: { lat: number; lng: number } | null;
 }) {
   return (
     <MapContainer
@@ -79,6 +90,7 @@ export default function MapView({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <ClickHandler onMapClick={onMapClick} />
+      <FlyToController coords={flyToCoords ?? null} />
 
       {emplacements.map((emp) => (
         <Marker
