@@ -34,6 +34,8 @@ const statutColor: Record<string, { bg: string; color: string }> = {
 
 const CANAUX = ["Radio", "Print", "Affichage", "TV"];
 const STATUTS = ["Planifié", "En cours", "Terminé", "Annulé"];
+const PLATEFORMES = ["Meta", "Google Ads", "TikTok Ads", "LinkedIn Ads", "YouTube"];
+const STATUTS_SOCIAL = ["En ligne", "En préparation", "Pausé", "Terminé", "Annulé"];
 const NUM_WEEKS = 10;
 
 const plateformeColor: Record<string, string> = {
@@ -100,6 +102,8 @@ function isPlanActiveInWeek(plan: PlanWithClient, weekStart: Date, weekEnd: Date
 export default function GanttClient({ plans, campagnes = [] }: { plans: PlanWithClient[]; campagnes?: CampagneWithClient[] }) {
   const [filtreCanaux, setFiltreCanaux] = useState<string[]>([]);
   const [filtreStatuts, setFiltreStatuts] = useState<string[]>([]);
+  const [filtrePlateformes, setFiltrePlateformes] = useState<string[]>([]);
+  const [filtreStatutsSocial, setFiltreStatutsSocial] = useState<string[]>([]);
   const [weekOffset, setWeekOffset] = useState(0);
 
   function toggleCanal(c: string) {
@@ -110,9 +114,19 @@ export default function GanttClient({ plans, campagnes = [] }: { plans: PlanWith
     setFiltreStatuts((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]);
   }
 
+  function togglePlateforme(p: string) {
+    setFiltrePlateformes((prev) => prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]);
+  }
+
+  function toggleStatutSocial(s: string) {
+    setFiltreStatutsSocial((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]);
+  }
+
   function resetFiltres() {
     setFiltreCanaux([]);
     setFiltreStatuts([]);
+    setFiltrePlateformes([]);
+    setFiltreStatutsSocial([]);
     setWeekOffset(0);
   }
 
@@ -123,8 +137,18 @@ export default function GanttClient({ plans, campagnes = [] }: { plans: PlanWith
     return true;
   });
 
-  // Grid start
-  const earliest = plans.length > 0 ? new Date(plans[0].date_debut) : new Date();
+  const filteredCampagnes = campagnes.filter((c) => {
+    if (filtrePlateformes.length > 0 && !filtrePlateformes.includes(c.plateforme)) return false;
+    if (filtreStatutsSocial.length > 0 && !filtreStatutsSocial.includes(c.statut)) return false;
+    return true;
+  });
+
+  // Grid start — prend en compte plans ET campagnes
+  const allDates = [
+    ...plans.map((p) => p.date_debut),
+    ...campagnes.map((c) => c.date_debut),
+  ].sort();
+  const earliest = allDates.length > 0 ? new Date(allDates[0]) : new Date();
   const baseStart = getMondayOf(earliest);
   const gridStart = addDays(baseStart, weekOffset * 7);
 
@@ -153,7 +177,7 @@ export default function GanttClient({ plans, campagnes = [] }: { plans: PlanWith
     }
     byClient.get(plan.client_id)!.plans.push(plan);
   }
-  for (const c of campagnes) {
+  for (const c of filteredCampagnes) {
     if (!byClient.has(c.client_id)) {
       byClient.set(c.client_id, { id: c.client_id, nom: c.clients.nom, offre: c.clients.offre, plans: [], campagnes: [] });
     }
@@ -161,7 +185,7 @@ export default function GanttClient({ plans, campagnes = [] }: { plans: PlanWith
   }
   const clients = Array.from(byClient.values());
 
-  const hasFiltres = filtreCanaux.length > 0 || filtreStatuts.length > 0;
+  const hasFiltres = filtreCanaux.length > 0 || filtreStatuts.length > 0 || filtrePlateformes.length > 0 || filtreStatutsSocial.length > 0;
 
   return (
     <>
@@ -218,6 +242,66 @@ export default function GanttClient({ plans, campagnes = [] }: { plans: PlanWith
                       border: `1px solid ${active ? sc.color : "#e5e7eb"}`,
                       background: active ? sc.bg : "#fff",
                       color: active ? sc.color : "#555",
+                      cursor: "pointer",
+                      fontWeight: active ? 600 : 400,
+                    }}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Plateforme */}
+          <div>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Plateforme</div>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              {PLATEFORMES.map((p) => {
+                const active = filtrePlateformes.includes(p);
+                const color = plateformeColor[p] || "#888";
+                return (
+                  <button
+                    key={p}
+                    onClick={() => togglePlateforme(p)}
+                    style={{
+                      padding: "4px 12px",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                      border: `1px solid ${active ? color : "#e5e7eb"}`,
+                      background: active ? color : "#fff",
+                      color: active ? "#fff" : "#555",
+                      cursor: "pointer",
+                      fontWeight: active ? 600 : 400,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    {plateformeEmoji[p]} {p}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Statut campagnes */}
+          <div>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Statut campagnes</div>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              {STATUTS_SOCIAL.map((s) => {
+                const active = filtreStatutsSocial.includes(s);
+                return (
+                  <button
+                    key={s}
+                    onClick={() => toggleStatutSocial(s)}
+                    style={{
+                      padding: "4px 12px",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                      border: `1px solid ${active ? "#7c3aed" : "#e5e7eb"}`,
+                      background: active ? "#f3e8ff" : "#fff",
+                      color: active ? "#7c3aed" : "#555",
                       cursor: "pointer",
                       fontWeight: active ? 600 : 400,
                     }}

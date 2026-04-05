@@ -113,6 +113,19 @@ export default async function Reporting() {
   const campagnesEnLigne = allCampagnes.filter((c) => c.statut === "En ligne").length;
   const budgetSocialTotal = allCampagnes.reduce((acc, c) => acc + (c.budget_total || 0), 0);
 
+  // --- Répartition par plateforme ---
+  const byPlateforme = new Map<string, { budget: number; count: number }>();
+  for (const c of allCampagnes) {
+    if (!byPlateforme.has(c.plateforme)) byPlateforme.set(c.plateforme, { budget: 0, count: 0 });
+    const entry = byPlateforme.get(c.plateforme)!;
+    entry.budget += c.budget_total || 0;
+    entry.count += 1;
+  }
+  const plateformeStats = Array.from(byPlateforme.entries())
+    .map(([plateforme, stats]) => ({ plateforme, ...stats }))
+    .sort((a, b) => b.budget - a.budget);
+  const maxBudgetPlateforme = plateformeStats[0]?.budget || 1;
+
   const kpis = [
     { label: "Clients actifs", value: String(clientsActifs), color: "#7b9fff" },
     { label: "Budget mensuel total", value: fmt(budgetMensuelTotal), color: "#34d399" },
@@ -149,11 +162,47 @@ export default async function Reporting() {
             ))}
           </div>
 
+          {/* Répartition budgets globale */}
+          {(budgetPlansTotal > 0 || budgetSocialTotal > 0) && (() => {
+            const total = budgetPlansTotal + budgetSocialTotal;
+            const pctPlans = Math.round((budgetPlansTotal / total) * 100);
+            const pctSocial = 100 - pctPlans;
+            return (
+              <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "20px", marginBottom: "16px" }}>
+                <h4 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e", marginBottom: "16px" }}>Répartition du budget global — {fmt(total)}</h4>
+                <div style={{ display: "flex", gap: "0", height: "28px", borderRadius: "6px", overflow: "hidden", marginBottom: "12px" }}>
+                  {budgetPlansTotal > 0 && (
+                    <div style={{ width: `${pctPlans}%`, background: "#fbbf24", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "#fff" }}>{pctPlans}%</span>
+                    </div>
+                  )}
+                  {budgetSocialTotal > 0 && (
+                    <div style={{ width: `${pctSocial}%`, background: "#a78bfa", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "#fff" }}>{pctSocial}%</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: "24px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ width: "10px", height: "10px", borderRadius: "2px", background: "#fbbf24", flexShrink: 0 }} />
+                    <span style={{ fontSize: "12px", color: "#555" }}>Plans médias</span>
+                    <span style={{ fontSize: "12px", fontWeight: 700, color: "#1a1a2e" }}>{fmt(budgetPlansTotal)}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ width: "10px", height: "10px", borderRadius: "2px", background: "#a78bfa", flexShrink: 0 }} />
+                    <span style={{ fontSize: "12px", color: "#555" }}>Campagnes digitales</span>
+                    <span style={{ fontSize: "12px", fontWeight: 700, color: "#1a1a2e" }}>{fmt(budgetSocialTotal)}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="grid-2col">
 
             {/* Budget par canal */}
             <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "20px" }}>
-              <h4 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e", marginBottom: "16px" }}>Budget par canal</h4>
+              <h4 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e", marginBottom: "16px" }}>Budget par canal — plans médias</h4>
               {canalStats.length === 0 ? (
                 <div style={{ fontSize: "13px", color: "#aaa" }}>Aucun plan créé.</div>
               ) : (
@@ -171,6 +220,30 @@ export default async function Reporting() {
                 ))
               )}
             </div>
+
+            {/* Budget par plateforme */}
+            <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "20px" }}>
+              <h4 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e", marginBottom: "16px" }}>Budget par plateforme — campagnes</h4>
+              {plateformeStats.length === 0 ? (
+                <div style={{ fontSize: "13px", color: "#aaa" }}>Aucune campagne créée.</div>
+              ) : (
+                plateformeStats.map((p) => (
+                  <div key={p.plateforme} style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                    <div style={{ fontSize: "12px", color: "#555", width: "120px", flexShrink: 0 }}>
+                      {plateformeIcon[p.plateforme] || "•"} {p.plateforme}
+                    </div>
+                    <div style={{ flex: 1, background: "#f0f0f0", borderRadius: "4px", height: "8px", overflow: "hidden" }}>
+                      <div style={{ width: `${Math.round((p.budget / maxBudgetPlateforme) * 100)}%`, height: "100%", borderRadius: "4px", background: plateformeColor[p.plateforme] || "#aaa" }} />
+                    </div>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#1a1a2e", width: "60px", textAlign: "right" }}>{fmt(p.budget)}</div>
+                    <div style={{ fontSize: "11px", color: "#aaa", width: "70px", textAlign: "right" }}>{p.count} campagne{p.count > 1 ? "s" : ""}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="grid-2col">
 
             {/* Répartition offres */}
             <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "20px" }}>
