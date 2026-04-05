@@ -188,8 +188,9 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
           .kpi-value { font-size: 16px; }
           .section-title { margin-bottom: 8px; padding-bottom: 4px; }
           .info-row { padding: 7px 12px; }
-          th { padding: 7px 10px; }
-          td { padding: 7px 10px; }
+          th { padding: 6px 10px; }
+          td { padding: 6px 10px; }
+          table { page-break-inside: avoid; }
           .plans-section { margin-bottom: 18px; }
           .footer { padding-top: 14px; margin-top: 4px; }
         }
@@ -336,7 +337,7 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
 
           {/* Campagnes sociales & digitales */}
           {allCampagnes.length > 0 && (
-            <div style={{ marginBottom: "24px" }}>
+            <div style={{ marginBottom: "24px", pageBreakInside: "avoid" }}>
               <div className="section-title">Campagnes sociales & digitales ({allCampagnes.length})</div>
               <table>
                 <thead>
