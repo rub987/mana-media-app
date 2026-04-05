@@ -179,7 +179,7 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
 
         @media print {
           .actions { display: none !important; }
-          body { background: #fff; }
+          body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .rapport { padding: 32px; }
           .page { max-width: 100%; box-shadow: none; }
         }
@@ -309,15 +309,16 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
             <div style={{ marginBottom: "32px" }}>
               <div className="section-title">Budget par canal</div>
               {canalStats.map(([canal, budget]) => (
-                <div key={canal} className="canal-row">
-                  <div className="canal-label">
-                    <span className="canal-dot-sm" style={{ background: canalColor[canal] || "#aaa" }} />
+                <div key={canal} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px", fontSize: "11px" }}>
+                  <div style={{ width: "80px", color: "#555", flexShrink: 0, display: "flex", alignItems: "center", gap: "5px" }}>
+                    <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: canalColor[canal] || "#aaa", flexShrink: 0, display: "inline-block" }} />
                     {canal}
                   </div>
-                  <div className="canal-bar-wrap">
-                    <div className="canal-bar-fill" style={{ width: `${Math.round((budget / maxCanal) * 100)}%`, background: canalColor[canal] || "#aaa" }} />
+                  <div style={{ flex: 1, background: "#f0f0f0", borderRadius: "3px", height: "6px", overflow: "hidden" }}>
+                    <div style={{ width: `${Math.round((budget / maxCanal) * 100)}%`, height: "6px", borderRadius: "3px", background: canalColor[canal] || "#aaa", display: "block" }} />
                   </div>
-                  <div className="canal-amount">{fmt(budget)}</div>
+                  <div style={{ fontWeight: 700, color: "#1a1a2e", width: "80px", textAlign: "right", flexShrink: 0 }}>{fmt(budget)}</div>
+                  <div style={{ color: "#aaa", width: "30px", textAlign: "right", flexShrink: 0 }}>{Math.round((budget / budgetPlansTotal) * 100)}%</div>
                 </div>
               ))}
             </div>
@@ -325,7 +326,7 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
 
           {/* Campagnes sociales & digitales */}
           {allCampagnes.length > 0 && (
-            <div className="plans-section">
+            <div style={{ marginBottom: "24px" }}>
               <div className="section-title">Campagnes sociales & digitales ({allCampagnes.length})</div>
               <table>
                 <thead>
