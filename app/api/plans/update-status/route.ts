@@ -4,6 +4,17 @@ import { logActivity } from "@/utils/logActivity";
 import { sendPlanStatusEmail, sendCampagneStatusEmail, sendRenewalReminderEmail } from "@/utils/sendEmail";
 import { createNotification } from "@/utils/createNotification";
 import { getTestMode } from "@/utils/getTestMode";
+import { sendWebPush } from "@/utils/sendWebPush";
+
+async function pushToUser(supabase: any, userId: string, payload: { title: string; body: string; url?: string }) {
+  const { data: subs } = await supabase
+    .from("push_subscriptions")
+    .select("endpoint, keys")
+    .eq("user_id", userId);
+  for (const sub of subs || []) {
+    await sendWebPush({ endpoint: sub.endpoint, keys: sub.keys }, payload);
+  }
+}
 
 export async function POST(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -65,6 +76,11 @@ export async function POST(request: Request) {
             canal: plan.canal,
             statut: u.newStatut,
           }).catch(() => {});
+          await pushToUser(supabase, clientData.auth_user_id, {
+            title: u.newStatut === "En cours" ? `Campagne ${plan.canal} lancée !` : `Campagne ${plan.canal} terminée`,
+            body: u.newStatut === "En cours" ? "Votre campagne est maintenant en cours." : "Consultez votre portail pour le bilan.",
+            url: "/portal",
+          });
         }
       }
     }
@@ -99,6 +115,11 @@ export async function POST(request: Request) {
             plateforme: c.plateforme,
             statut: "Terminé",
           }).catch(() => {});
+          await pushToUser(supabase, clientData.auth_user_id, {
+            title: `Campagne ${c.plateforme} terminée`,
+            body: "Consultez votre portail pour le bilan.",
+            url: "/portal",
+          });
         }
       }
     }
