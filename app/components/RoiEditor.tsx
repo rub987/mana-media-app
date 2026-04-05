@@ -9,15 +9,19 @@ export default function RoiEditor({ clientId, initialRoi }: { clientId: string; 
   const [current, setCurrent] = useState(initialRoi || "");
   const [error, setError] = useState("");
 
+  function normalize(v: string) {
+    return v.trim().replace(/^[xX]/, "×");
+  }
+
   function isValid(v: string) {
     if (!v) return true; // vide = effacer
-    return /^×\d+(\.\d+)?$/.test(v.trim());
+    return /^×\d+(\.\d+)?$/.test(v);
   }
 
   async function save() {
-    const trimmed = value.trim();
-    if (!isValid(trimmed)) {
-      setError("Format attendu : ×2.5");
+    const normalized = normalize(value);
+    if (!isValid(normalized)) {
+      setError("Format attendu : ×2.5 ou x2.5");
       return;
     }
     setError("");
@@ -25,9 +29,9 @@ export default function RoiEditor({ clientId, initialRoi }: { clientId: string; 
     await fetch("/api/clients/update-roi", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: clientId, roi: trimmed || null }),
+      body: JSON.stringify({ id: clientId, roi: normalized || null }),
     });
-    setCurrent(trimmed);
+    setCurrent(normalized);
     setEditing(false);
     setSaving(false);
   }
@@ -60,7 +64,7 @@ export default function RoiEditor({ clientId, initialRoi }: { clientId: string; 
         </div>
         {error
           ? <div style={{ fontSize: "11px", color: "#dc2626", marginTop: "4px" }}>{error} — utilise le symbole ×</div>
-          : <div style={{ fontSize: "11px", color: "#aaa", marginTop: "4px" }}>Format : ×2.5 · Laisse vide pour effacer</div>
+          : <div style={{ fontSize: "11px", color: "#aaa", marginTop: "4px" }}>Format : x2.5 ou ×2.5 · Laisse vide pour effacer</div>
         }
       </div>
     );
