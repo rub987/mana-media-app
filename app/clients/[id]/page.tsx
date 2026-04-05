@@ -6,6 +6,7 @@ import PlanMediaSection from "../../components/PlanMediaSection";
 import SocialSection from "../../components/SocialSection";
 import RefreshFromZohoButton from "../../components/RefreshFromZohoButton";
 import CreatePortalAccessButton from "../../components/CreatePortalAccessButton";
+import RoiEditor from "../../components/RoiEditor";
 
 export const revalidate = 0;
 
@@ -119,16 +120,21 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
           <div className="grid-4col" style={{ marginBottom: "24px" }}>
             {[
               { label: "Budget mensuel", value: `${budgetK}k F`, color: "#7b9fff" },
-              { label: "ROI estimé", value: client.roi || "—", color: "#34d399", highlight: client.roi?.startsWith("×") },
               { label: "Canaux actifs", value: String(client.canaux?.length || 0), color: "#fbbf24" },
               { label: "Contrat", value: client.contrat || "—", color: "#f87171" },
             ].map((kpi) => (
               <div key={kpi.label} style={{ background: "#fff", borderRadius: "10px", padding: "18px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
                 <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>{kpi.label}</div>
-                <div style={{ fontSize: "24px", fontWeight: 700, color: kpi.highlight ? "#16a34a" : "#1a1a2e", margin: "6px 0 0" }}>{kpi.value}</div>
+                <div style={{ fontSize: "24px", fontWeight: 700, color: "#1a1a2e", margin: "6px 0 0" }}>{kpi.value}</div>
                 <div style={{ position: "absolute", top: 0, right: 0, width: "4px", height: "100%", background: kpi.color, borderRadius: "0 10px 10px 0" }} />
               </div>
             ))}
+            {/* ROI — éditable inline */}
+            <div style={{ background: "#fff", borderRadius: "10px", padding: "18px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
+              <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>ROI estimé</div>
+              <RoiEditor clientId={client.id} initialRoi={client.roi || null} />
+              <div style={{ position: "absolute", top: 0, right: 0, width: "4px", height: "100%", background: "#34d399", borderRadius: "0 10px 10px 0" }} />
+            </div>
           </div>
 
           <div className="grid-2col">
