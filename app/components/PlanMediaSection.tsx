@@ -42,6 +42,16 @@ function formatDate(d: string) {
   return new Date(year, month - 1, day).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 }
 
+function statutEffectif(plan: Plan): string {
+  if (plan.statut === "Annulé") return "Annulé";
+  const now = Date.now();
+  const debut = new Date(plan.date_debut.split("T")[0]).getTime();
+  const fin = new Date(plan.date_fin.split("T")[0]).getTime() + 86400000;
+  if (now >= debut && now <= fin) return "En cours";
+  if (now < debut) return "Planifié";
+  return "Terminé";
+}
+
 function EditModal({ plan, emplacements, onClose }: { plan: Plan; emplacements: Emplacement[]; onClose: () => void }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -274,9 +284,14 @@ export default function PlanMediaSection({ clientId, plans }: { clientId: string
                   <td style={{ padding: "12px 16px", color: "#666" }}>{formatDate(plan.date_debut)}</td>
                   <td style={{ padding: "12px 16px", color: "#666" }}>{formatDate(plan.date_fin)}</td>
                   <td style={{ padding: "12px 16px" }}>
-                    <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: statutColor[plan.statut]?.bg, color: statutColor[plan.statut]?.color }}>
-                      {plan.statut}
-                    </span>
+                    {(() => {
+                      const effectif = statutEffectif(plan);
+                      return (
+                        <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: statutColor[effectif]?.bg, color: statutColor[effectif]?.color }}>
+                          {effectif}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td style={{ padding: "12px 16px", color: "#888" }}>{plan.notes || "—"}</td>
                   <td style={{ padding: "12px 16px" }}>
