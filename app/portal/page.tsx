@@ -158,14 +158,15 @@ export default async function Portal() {
         {/* KPIs */}
         <div className="grid-4col" style={{ marginBottom: "24px" }}>
           {[
-            { label: "Offre", value: client.offre, color: "#7b9fff" },
-            { label: "Budget mensuel", value: fmt(client.budget_mensuel || 0), color: "#34d399" },
-            { label: "Plans en cours", value: String(plansEnCours.length), color: "#fbbf24" },
-            { label: "ROI estimé", value: client.roi || "—", color: "#a78bfa", highlight: client.roi?.startsWith("×") },
+            { label: "Offre", value: client.offre, sub: "Niveau de service souscrit", color: "#7b9fff" },
+            { label: "Budget mensuel", value: fmt(client.budget_mensuel || 0), sub: "Enveloppe allouée par mois", color: "#34d399" },
+            { label: "Plans en cours", value: String(plansEnCours.length), sub: `${plansPlanifies.length} à venir · ${plansTermines.length} terminé${plansTermines.length > 1 ? "s" : ""}`, color: "#fbbf24" },
+            { label: "ROI estimé", value: client.roi || "—", sub: "Revenus générés vs budget investi", color: "#a78bfa", highlight: client.roi?.startsWith("×") },
           ].map((k) => (
             <div key={k.label} style={{ background: "#fff", borderRadius: "10px", padding: "18px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
               <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>{k.label}</div>
-              <div style={{ fontSize: "22px", fontWeight: 800, color: k.highlight ? "#16a34a" : "#1a1a2e", margin: "6px 0 0" }}>{k.value}</div>
+              <div style={{ fontSize: "22px", fontWeight: 800, color: k.highlight ? "#16a34a" : "#1a1a2e", margin: "6px 0 4px" }}>{k.value}</div>
+              <div style={{ fontSize: "11px", color: "#aaa" }}>{k.sub}</div>
               <div style={{ position: "absolute", top: 0, right: 0, width: "4px", height: "100%", background: k.color, borderRadius: "0 10px 10px 0" }} />
             </div>
           ))}
