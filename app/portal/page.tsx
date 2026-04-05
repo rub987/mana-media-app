@@ -96,9 +96,21 @@ export default async function Portal() {
 
   const allPlans = plans || [];
   const allCampagnes = campagnes || [];
-  const plansEnCours = allPlans.filter(p => p.statut === "En cours");
-  const plansTermines = allPlans.filter(p => p.statut === "Terminé");
-  const plansPlanifies = allPlans.filter(p => p.statut === "Planifié");
+
+  // Calcul état effectif depuis les dates (indépendant du statut stocké, sauf Annulé)
+  const now = Date.now();
+  function planEffectif(p: any): "en_cours" | "a_venir" | "termine" | "annule" {
+    if (p.statut === "Annulé") return "annule";
+    const debut = parseDate(p.date_debut).getTime();
+    const fin = parseDate(p.date_fin).getTime() + 86400000; // fin de journée
+    if (now >= debut && now <= fin) return "en_cours";
+    if (now < debut) return "a_venir";
+    return "termine";
+  }
+
+  const plansEnCours = allPlans.filter(p => planEffectif(p) === "en_cours");
+  const plansTermines = allPlans.filter(p => planEffectif(p) === "termine");
+  const plansPlanifies = allPlans.filter(p => planEffectif(p) === "a_venir");
   const budgetPlans = allPlans.reduce((acc, p) => acc + (p.budget || 0), 0);
   const campagnesActives = allCampagnes.filter(c => c.statut === "En ligne" || c.statut === "En préparation" || c.statut === "En attente validation");
   const budgetProgression = client?.budget_mensuel > 0 ? Math.min(Math.round((budgetPlans / client.budget_mensuel) * 100), 100) : 0;
