@@ -247,6 +247,42 @@ export default function GanttClient({ plans, campagnes = [] }: { plans: PlanWith
             {filteredPlans.length} plan{filteredPlans.length > 1 ? "s" : ""} affiché{filteredPlans.length > 1 ? "s" : ""} sur {plans.length}
           </div>
         )}
+
+        {/* Légende */}
+        <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: "1px solid #f0f0f0", display: "flex", gap: "24px", flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Plans médias</div>
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              {Object.entries(canalColor).map(([canal, color]) => (
+                <div key={canal} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <div style={{ width: "24px", height: "10px", borderRadius: "3px", background: color, opacity: 0.85 }} />
+                  <span style={{ fontSize: "11px", color: "#555" }}>{canalEmoji[canal]} {canal}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Campagnes sociales</div>
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              {Object.entries(plateformeColor).map(([plateforme, color]) => (
+                <div key={plateforme} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <div style={{ width: "20px", height: "7px", borderRadius: "2px", background: color, opacity: 0.7 }} />
+                  <span style={{ fontSize: "11px", color: "#555" }}>{plateformeEmoji[plateforme]} {plateforme}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", justifyContent: "flex-end" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: "24px", height: "10px", borderRadius: "3px", background: "#aaa", opacity: 0.85 }} />
+              <span style={{ fontSize: "11px", color: "#555" }}>Plan actif</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: "20px", height: "7px", borderRadius: "2px", background: "#aaa", opacity: 0.7 }} />
+              <span style={{ fontSize: "11px", color: "#555" }}>Campagne active</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Gantt */}
