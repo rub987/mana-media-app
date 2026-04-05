@@ -135,6 +135,16 @@ export default async function Dashboard() {
     .sort((a, b) => daysUntil(a.date_fin) - daysUntil(b.date_fin))
     .slice(0, 4);
 
+  // --- Alertes : campagnes sociales En ligne qui terminent dans 7 jours ---
+  const alertesSocial = allSocial
+    .filter((c) => {
+      if (c.statut !== "En ligne" || !c.date_fin) return false;
+      const j = daysUntil(c.date_fin);
+      return j >= 0 && j <= 7;
+    })
+    .sort((a, b) => daysUntil(a.date_fin) - daysUntil(b.date_fin))
+    .slice(0, 4);
+
   // --- Contacts prospects ---
   const contacts = allNotifs.filter((n) => n.type === "contact").slice(0, 5);
 
@@ -182,9 +192,9 @@ export default async function Dashboard() {
             ))}
           </div>
 
-          {/* Alertes */}
+          {/* Alertes plans médias */}
           {alertes.length > 0 && (
-            <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "10px", padding: "14px 20px", marginBottom: "20px", display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "10px", padding: "14px 20px", marginBottom: "12px", display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
               <span style={{ fontSize: "16px" }}>⚠️</span>
               <span style={{ fontSize: "13px", fontWeight: 600, color: "#c2410c" }}>Plans se terminant bientôt :</span>
               {alertes.map((p) => {
@@ -192,6 +202,22 @@ export default async function Dashboard() {
                 return (
                   <Link key={p.id} href={`/clients/${p.client_id}`} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 12px", background: "#fff", border: "1px solid #fed7aa", borderRadius: "20px", fontSize: "12px", color: "#c2410c", textDecoration: "none", fontWeight: 600 }}>
                     {p.clients?.nom} · {p.canal} · {j === 0 ? "aujourd'hui" : `dans ${j} j`}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Alertes campagnes sociales */}
+          {alertesSocial.length > 0 && (
+            <div style={{ background: "#faf5ff", border: "1px solid #d8b4fe", borderRadius: "10px", padding: "14px 20px", marginBottom: "20px", display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: "16px" }}>📱</span>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "#7c3aed" }}>Campagnes digitales se terminant bientôt :</span>
+              {alertesSocial.map((c) => {
+                const j = daysUntil(c.date_fin);
+                return (
+                  <Link key={c.id} href={`/clients/${c.client_id}`} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 12px", background: "#fff", border: "1px solid #d8b4fe", borderRadius: "20px", fontSize: "12px", color: "#7c3aed", textDecoration: "none", fontWeight: 600 }}>
+                    {c.clients?.nom} · {c.plateforme} · {j === 0 ? "aujourd'hui" : `dans ${j} j`}
                   </Link>
                 );
               })}
