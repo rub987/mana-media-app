@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import NotifBell from "./NotifBell";
+import PushPermission from "./PushPermission";
 
 const navItemsAdmin = [
   { label: "Dashboard", href: "/dashboard", icon: "📊" },
@@ -190,6 +191,9 @@ export default function Sidebar() {
                 {userRole === "community_manager" ? "Community Manager" : "Administrateur"}
               </div>
             </div>
+          </div>
+          <div style={{ margin: "0 12px 4px" }}>
+            <PushPermission />
           </div>
           <Link href="/" onClick={closeMenu} style={{ margin: "0 12px 4px", padding: "8px 12px", background: "transparent", border: "1px solid #2a2a4e", borderRadius: "8px", color: "#666", fontSize: "12px", cursor: "pointer", textAlign: "left", textDecoration: "none", display: "block" }}>
             🌐 Page d'accueil

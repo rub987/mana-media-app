@@ -129,6 +129,103 @@ export async function sendPlanUpdatedEmail({
   });
 }
 
+export async function sendRenewalReminderEmail({
+  to,
+  clientNom,
+  canal,
+  dateFin,
+  joursRestants,
+}: {
+  to: string;
+  clientNom: string;
+  canal: string;
+  dateFin: string;
+  joursRestants: number;
+}) {
+  const fmtDate = (d: string) => {
+    const [y, m, day] = d.split("T")[0].split("-").map(Number);
+    return new Date(y, m - 1, day).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  };
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Renouvellement à prévoir — Campagne ${canal} se termine dans ${joursRestants} jours`,
+    html: `
+      <div style="font-family: -apple-system, sans-serif; max-width: 560px; margin: 0 auto; background: #f5f6fa; padding: 32px;">
+        <div style="background: #1a1a2e; padding: 20px 28px; border-radius: 10px 10px 0 0;">
+          <span style="font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 1px;">PilotMedia</span>
+          <span style="font-size: 10px; color: #7b9fff; letter-spacing: 2px; margin-left: 10px;">PORTAIL CLIENT</span>
+        </div>
+        <div style="background: #fff; padding: 28px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
+          <div style="background: #fff7ed; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; border-left: 3px solid #f59e0b;">
+            <span style="font-size: 13px; font-weight: 600; color: #c2410c;">⏳ J-${joursRestants} avant la fin de votre campagne</span>
+          </div>
+          <h2 style="font-size: 18px; color: #1a1a2e; margin: 0 0 8px;">Pensez à renouveler votre campagne</h2>
+          <p style="color: #555; font-size: 14px; margin: 0 0 24px;">
+            Votre campagne <strong>${canal}</strong> se termine le <strong>${fmtDate(dateFin)}</strong>.<br>
+            Contactez-nous dès maintenant pour assurer la continuité de votre présence médias.
+          </p>
+          <a href="mailto:info@redsoyu.com?subject=Renouvellement campagne ${canal} — ${clientNom}" style="display: inline-block; background: #f59e0b; color: #fff; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; text-decoration: none;">
+            Demander un renouvellement →
+          </a>
+          <p style="font-size: 12px; color: #aaa; margin-top: 24px; margin-bottom: 0;">
+            PilotMedia · Régie publicitaire RESOYU · Polynésie française<br>
+            <a href="mailto:info@redsoyu.com" style="color: #7b9fff;">info@redsoyu.com</a> · (+689) 40 85 60 72
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function sendCampagneStatusEmail({
+  to,
+  clientNom,
+  plateforme,
+  statut,
+}: {
+  to: string;
+  clientNom: string;
+  plateforme: string;
+  statut: string;
+}) {
+  const messages: Record<string, { subject: string; body: string }> = {
+    "Terminé": {
+      subject: `Votre campagne ${plateforme} est terminée — ${clientNom}`,
+      body: `Votre campagne <strong>${plateforme}</strong> est arrivée à son terme. Consultez votre portail pour le bilan.`,
+    },
+  };
+
+  const msg = messages[statut];
+  if (!msg) return;
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: msg.subject,
+    html: `
+      <div style="font-family: -apple-system, sans-serif; max-width: 560px; margin: 0 auto; background: #f5f6fa; padding: 32px;">
+        <div style="background: #1a1a2e; padding: 20px 28px; border-radius: 10px 10px 0 0;">
+          <span style="font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 1px;">PilotMedia</span>
+          <span style="font-size: 10px; color: #7b9fff; letter-spacing: 2px; margin-left: 10px;">PORTAIL CLIENT</span>
+        </div>
+        <div style="background: #fff; padding: 28px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
+          <h2 style="font-size: 18px; color: #1a1a2e; margin: 0 0 8px;">Campagne digitale terminée</h2>
+          <p style="color: #555; font-size: 14px; margin: 0 0 24px;">${msg.body}</p>
+          <a href="https://mana-media-app.vercel.app/portal" style="display: inline-block; background: #1a1a2e; color: #fff; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; text-decoration: none;">
+            Voir mon portail →
+          </a>
+          <p style="font-size: 12px; color: #aaa; margin-top: 24px; margin-bottom: 0;">
+            PilotMedia · Régie publicitaire RESOYU · Polynésie française<br>
+            <a href="mailto:info@redsoyu.com" style="color: #7b9fff;">info@redsoyu.com</a> · (+689) 40 85 60 72
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
 export async function sendPlanStatusEmail({
   to,
   clientNom,
