@@ -14,6 +14,19 @@ type Plan = {
   notes: string;
 };
 
+type Campagne = {
+  id: string;
+  plateforme: string;
+  type_campagne: string;
+  objectif: string | null;
+  budget_total: number | null;
+  budget_journalier: number | null;
+  date_debut: string;
+  date_fin: string | null;
+  statut: string;
+  notes: string | null;
+};
+
 function fmt(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M F CFP`;
   if (n >= 1_000) return `${Math.round(n / 1000)} 000 F CFP`;
@@ -44,15 +57,42 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
     if (!assignment) redirect("/clients");
   }
 
-  const [{ data: client }, { data: plans }] = await Promise.all([
+  const [{ data: client }, { data: plans }, { data: campagnes }] = await Promise.all([
     supabase.from("clients").select("*").eq("id", id).single(),
     supabase.from("plans_media").select("*").eq("client_id", id).order("date_debut", { ascending: true }),
+    supabase.from("campagnes_sociales").select("*").eq("client_id", id).order("date_debut", { ascending: true }),
   ]);
 
   if (!client) notFound();
 
   const allPlans = (plans || []) as Plan[];
+  const allCampagnes = (campagnes || []) as Campagne[];
   const budgetPlansTotal = allPlans.reduce((acc, p) => acc + (p.budget || 0), 0);
+  const budgetSocialTotal = allCampagnes.reduce((acc, c) => acc + (c.budget_total || 0), 0);
+  const budgetUtilise = client.budget_mensuel > 0 ? Math.round((budgetPlansTotal / client.budget_mensuel) * 100) : 0;
+
+  // Budget par canal
+  const budgetParCanal: Record<string, number> = {};
+  for (const p of allPlans) {
+    if (p.canal && p.budget) budgetParCanal[p.canal] = (budgetParCanal[p.canal] || 0) + p.budget;
+  }
+  const canalStats = Object.entries(budgetParCanal).sort((a, b) => b[1] - a[1]);
+  const maxCanal = canalStats[0]?.[1] || 1;
+
+  const canalColor: Record<string, string> = {
+    Radio: "#fbbf24", Print: "#34d399", Affichage: "#f87171", TV: "#a78bfa", Digital: "#7b9fff",
+  };
+  const plateformeColor: Record<string, string> = {
+    "Meta": "#1877f2", "Google Ads": "#4285f4", "TikTok Ads": "#000000", "LinkedIn Ads": "#0077b5", "YouTube": "#ff0000",
+  };
+  const socialStatutColor: Record<string, { bg: string; color: string }> = {
+    "En préparation": { bg: "#f3f4f6", color: "#6b7280" },
+    "En attente validation": { bg: "#fff7ed", color: "#c2410c" },
+    "En ligne": { bg: "#dcfce7", color: "#16a34a" },
+    "Pausé": { bg: "#fef9c3", color: "#92400e" },
+    "Terminé": { bg: "#f3f4f6", color: "#374151" },
+    "Annulé": { bg: "#fee2e2", color: "#dc2626" },
+  };
   const today = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
   return (
@@ -94,6 +134,19 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
         .kpi { background: #f8f9fc; border-radius: 8px; padding: 16px; border-left: 3px solid #1a1a2e; }
         .kpi-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
         .kpi-value { font-size: 20px; font-weight: 800; color: #1a1a2e; }
+        .kpi-sub { font-size: 10px; color: #aaa; margin-top: 4px; }
+
+        /* Budget bar */
+        .budget-bar-wrap { margin-top: 6px; background: #e5e7eb; border-radius: 4px; height: 4px; overflow: hidden; }
+        .budget-bar-fill { height: 100%; border-radius: 4px; background: #7b9fff; }
+
+        /* Canal bars */
+        .canal-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 11px; }
+        .canal-label { width: 80px; color: #555; flex-shrink: 0; display: flex; align-items: center; gap: 5px; }
+        .canal-dot-sm { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+        .canal-bar-wrap { flex: 1; background: #f0f0f0; border-radius: 3px; height: 6px; overflow: hidden; }
+        .canal-bar-fill { height: 100%; border-radius: 3px; }
+        .canal-amount { font-weight: 700; color: #1a1a2e; width: 60px; text-align: right; flex-shrink: 0; }
 
         /* Section titre */
         .section-title { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #888; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; }
@@ -164,17 +217,26 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
 
           {/* KPIs */}
           <div className="kpis">
-            {[
-              { label: "Budget mensuel", value: fmt(client.budget_mensuel || 0) },
-              { label: "ROI estimé", value: client.roi || "—" },
-              { label: "Plans médias", value: String(allPlans.length) },
-              { label: "Budget plans total", value: budgetPlansTotal > 0 ? fmt(budgetPlansTotal) : "—" },
-            ].map((k) => (
-              <div key={k.label} className="kpi">
-                <div className="kpi-label">{k.label}</div>
-                <div className="kpi-value">{k.value}</div>
-              </div>
-            ))}
+            <div className="kpi">
+              <div className="kpi-label">Budget mensuel</div>
+              <div className="kpi-value">{fmt(client.budget_mensuel || 0)}</div>
+            </div>
+            <div className="kpi">
+              <div className="kpi-label">Budget utilisé (plans)</div>
+              <div className="kpi-value">{budgetUtilise}%</div>
+              <div className="budget-bar-wrap"><div className="budget-bar-fill" style={{ width: `${Math.min(budgetUtilise, 100)}%` }} /></div>
+              <div className="kpi-sub">{fmt(budgetPlansTotal)} sur {fmt(client.budget_mensuel || 0)}</div>
+            </div>
+            <div className="kpi">
+              <div className="kpi-label">Plans médias</div>
+              <div className="kpi-value">{allPlans.length}</div>
+              <div className="kpi-sub">{allPlans.filter(p => p.statut === "En cours").length} en cours · {allPlans.filter(p => p.statut === "Planifié").length} planifié{allPlans.filter(p => p.statut === "Planifié").length > 1 ? "s" : ""}</div>
+            </div>
+            <div className="kpi">
+              <div className="kpi-label">Campagnes digitales</div>
+              <div className="kpi-value">{allCampagnes.length}</div>
+              <div className="kpi-sub">{allCampagnes.filter(c => c.statut === "En ligne").length} en ligne{budgetSocialTotal > 0 ? ` · ${fmt(budgetSocialTotal)}` : ""}</div>
+            </div>
           </div>
 
           {/* Informations */}
@@ -241,6 +303,70 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
               </table>
             )}
           </div>
+
+          {/* Budget par canal */}
+          {canalStats.length > 0 && (
+            <div style={{ marginBottom: "32px" }}>
+              <div className="section-title">Budget par canal</div>
+              {canalStats.map(([canal, budget]) => (
+                <div key={canal} className="canal-row">
+                  <div className="canal-label">
+                    <span className="canal-dot-sm" style={{ background: canalColor[canal] || "#aaa" }} />
+                    {canal}
+                  </div>
+                  <div className="canal-bar-wrap">
+                    <div className="canal-bar-fill" style={{ width: `${Math.round((budget / maxCanal) * 100)}%`, background: canalColor[canal] || "#aaa" }} />
+                  </div>
+                  <div className="canal-amount">{fmt(budget)}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Campagnes sociales & digitales */}
+          {allCampagnes.length > 0 && (
+            <div className="plans-section">
+              <div className="section-title">Campagnes sociales & digitales ({allCampagnes.length})</div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Plateforme</th>
+                    <th>Type</th>
+                    <th>Objectif</th>
+                    <th>Budget total</th>
+                    <th>Période</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allCampagnes.map((c) => {
+                    const sc = socialStatutColor[c.statut] || { bg: "#f3f4f6", color: "#6b7280" };
+                    return (
+                      <tr key={c.id}>
+                        <td>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: plateformeColor[c.plateforme] || "#aaa", display: "inline-block", flexShrink: 0 }} />
+                            {c.plateforme}
+                          </span>
+                        </td>
+                        <td>{c.type_campagne || "—"}</td>
+                        <td style={{ color: "#888" }}>{c.objectif || "—"}</td>
+                        <td style={{ fontWeight: 600 }}>{c.budget_total ? fmt(c.budget_total) : "—"}</td>
+                        <td style={{ color: "#888" }}>
+                          {formatDate(c.date_debut)}{c.date_fin ? ` → ${formatDate(c.date_fin)}` : ""}
+                        </td>
+                        <td>
+                          <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: "10px", fontSize: "10px", fontWeight: 600, background: sc.bg, color: sc.color }}>
+                            {c.statut}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {/* Footer */}
           <div className="footer">
