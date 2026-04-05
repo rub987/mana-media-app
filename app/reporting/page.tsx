@@ -1,5 +1,6 @@
 import Sidebar from "../components/Sidebar";
 import { createClient } from "@/utils/supabase/server";
+import ExportCSVButton from "../components/ExportCSVButton";
 
 export const revalidate = 0;
 
@@ -126,10 +127,13 @@ export default async function Reporting() {
       <main className="app-main">
         {/* Header */}
         <div className="page-header">
-          <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Reporting</h1>
-          <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>
-            Vue globale — {allClients.length} clients · {allPlans.length} plans médias · {allCampagnes.length} campagnes digitales
-          </p>
+          <div>
+            <h1 style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>Reporting</h1>
+            <p style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>
+              Vue globale — {allClients.length} clients · {allPlans.length} plans médias · {allCampagnes.length} campagnes digitales
+            </p>
+          </div>
+          <ExportCSVButton />
         </div>
 
         <div className="page-content">
