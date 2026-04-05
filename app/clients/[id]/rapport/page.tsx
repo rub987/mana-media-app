@@ -177,26 +177,70 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
         .canal-chips { display: flex; flex-wrap: wrap; gap: 4px; }
         .canal-chip { padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #f0f4ff; color: #4f6ef5; }
 
+        /* Running header — visible seulement à l'impression */
+        .print-running-header { display: none; }
+
         @media print {
           .actions { display: none !important; }
-          body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 11px; }
-          .rapport { padding: 20px 28px; }
+          body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .page { max-width: 100%; box-shadow: none; }
+          .rapport { padding: 16px 28px 24px; }
+
+          /* Header du rapport : seulement sur la 1ère page */
           .header { padding-bottom: 12px; margin-bottom: 14px; }
           .client-name { font-size: 22px !important; }
-          .kpis { margin-bottom: 14px; gap: 8px; }
+
+          /* Running header sur chaque page via position fixed */
+          .print-running-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            padding: 6px 28px;
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 10px;
+            color: #888;
+            z-index: 999;
+          }
+          .print-running-header strong { color: #1a1a2e; font-weight: 700; }
+
+          /* Espace en haut pour ne pas être caché par le running header */
+          .rapport { padding-top: 36px; }
+
+          /* Numérotation pages */
+          @page {
+            margin: 12mm 10mm;
+            @bottom-right {
+              content: "Page " counter(page) " / " counter(pages);
+              font-size: 9px;
+              color: #aaa;
+            }
+          }
+
+          /* Compacité générale */
+          .kpis { margin-bottom: 12px; gap: 8px; }
           .kpi { padding: 8px 10px; }
+          .kpi-label { font-size: 9px; }
           .kpi-value { font-size: 15px; }
           .kpi-sub { font-size: 9px; }
-          .section-title { margin-bottom: 6px; padding-bottom: 3px; font-size: 10px; }
+          .section-title { margin-bottom: 6px; padding-bottom: 3px; font-size: 9px; }
           .info-row { padding: 5px 10px; font-size: 11px; }
           th { padding: 5px 8px; font-size: 9px; }
           td { padding: 5px 8px; font-size: 11px; }
+          thead { display: table-header-group; } /* répéter les en-têtes sur chaque page */
           .canal-chip { font-size: 10px; }
-          .plans-section { margin-bottom: 14px; }
-          .footer { padding-top: 10px; margin-top: 2px; font-size: 11px; }
+          .plans-section { margin-bottom: 12px; }
+          .footer { padding-top: 10px; margin-top: 4px; font-size: 11px; }
         }
       `}</style>
+
+      {/* Running header — affiché sur chaque page à l'impression */}
+      <div className="print-running-header">
+        <span><strong>PilotMedia</strong> — Rapport client</span>
+        <span><strong>{client.nom}</strong> · {today}</span>
+      </div>
 
       <div className="page">
         <div className="actions">
@@ -339,7 +383,7 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
 
           {/* Campagnes sociales & digitales */}
           {allCampagnes.length > 0 && (
-            <div style={{ marginBottom: "16px", pageBreakInside: "avoid" }}>
+            <div style={{ marginBottom: "16px" }}>
               <div className="section-title">Campagnes sociales & digitales ({allCampagnes.length})</div>
               <table>
                 <thead>
