@@ -124,6 +124,20 @@ export default async function Portal() {
   }
   const budgetTotal = Object.values(budgetParCanal).reduce((a, b) => a + b, 0);
 
+  // Budget campagnes sociales
+  const budgetCampagnesTotal = allCampagnes.reduce((acc, c) => acc + (c.budget_total || 0), 0);
+  const campagnesEnLigne = allCampagnes.filter(c => c.statut === "En ligne");
+  const campagnesTerminees = allCampagnes.filter(c => c.statut === "Terminé" || c.statut === "Annulé");
+  const campagnesEnPrep = allCampagnes.filter(c => c.statut === "En préparation" || c.statut === "En attente validation");
+  const budgetParPlateforme: Record<string, number> = {};
+  for (const c of allCampagnes) {
+    if (c.plateforme && c.budget_total) {
+      budgetParPlateforme[c.plateforme] = (budgetParPlateforme[c.plateforme] || 0) + c.budget_total;
+    }
+  }
+  const plateformeTries = Object.entries(budgetParPlateforme).sort((a, b) => b[1] - a[1]);
+  const maxPlateforme = Math.max(...plateformeTries.map(([, v]) => v), 1);
+
   // Budget par mois (basé sur date_debut)
   const budgetParMois: Record<string, number> = {};
   for (const plan of allPlans) {
@@ -318,6 +332,58 @@ export default async function Portal() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Reporting campagnes sociales */}
+        {allCampagnes.length > 0 && (
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "16px" }}>
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>
+              Reporting campagnes sociales & digitales
+            </div>
+            <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
+
+              {/* KPIs */}
+              <div className="grid-4col">
+                {[
+                  { label: "En ligne", value: String(campagnesEnLigne.length), color: "#22c55e", sub: "Campagnes actives" },
+                  { label: "En préparation", value: String(campagnesEnPrep.length), color: "#f59e0b", sub: "En attente ou prep." },
+                  { label: "Terminées", value: String(campagnesTerminees.length), color: "#9ca3af", sub: `sur ${allCampagnes.length} au total` },
+                  { label: "Budget total", value: fmt(budgetCampagnesTotal), color: "#a78bfa", sub: "Toutes campagnes" },
+                ].map((k) => (
+                  <div key={k.label} style={{ background: "#f9fafb", borderRadius: "8px", padding: "14px 16px", borderLeft: `3px solid ${k.color}` }}>
+                    <div style={{ fontSize: "10px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{k.label}</div>
+                    <div style={{ fontSize: "20px", fontWeight: 700, color: "#1a1a2e" }}>{k.value}</div>
+                    <div style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}>{k.sub}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Budget par plateforme */}
+              {plateformeTries.length > 0 && (
+                <div>
+                  <div style={{ fontSize: "12px", fontWeight: 600, color: "#555", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Budget par plateforme</div>
+                  {plateformeTries.map(([plateforme, budget]) => (
+                    <div key={plateforme} style={{ marginBottom: "10px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "4px" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 500, color: "#1a1a2e" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: plateformeColor[plateforme] || "#aaa", display: "inline-block" }} />
+                          {plateforme}
+                        </span>
+                        <span style={{ color: "#888" }}>{fmt(budget)} <span style={{ color: "#bbb" }}>({Math.round((budget / (budgetCampagnesTotal || 1)) * 100)}%)</span></span>
+                      </div>
+                      <div style={{ background: "#f0f0f0", borderRadius: "4px", height: "6px", overflow: "hidden" }}>
+                        <div style={{ width: `${Math.round((budget / maxPlateforme) * 100)}%`, height: "100%", borderRadius: "4px", background: plateformeColor[plateforme] || "#a78bfa" }} />
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+                    <span style={{ color: "#888" }}>Total campagnes</span>
+                    <span style={{ fontWeight: 700, color: "#1a1a2e" }}>{fmt(budgetCampagnesTotal)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
