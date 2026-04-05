@@ -180,8 +180,18 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
         @media print {
           .actions { display: none !important; }
           body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .rapport { padding: 32px; }
+          .rapport { padding: 24px 32px; }
           .page { max-width: 100%; box-shadow: none; }
+          .header { padding-bottom: 14px; margin-bottom: 18px; }
+          .kpis { margin-bottom: 18px; gap: 10px; }
+          .kpi { padding: 10px 12px; }
+          .kpi-value { font-size: 16px; }
+          .section-title { margin-bottom: 8px; padding-bottom: 4px; }
+          .info-row { padding: 7px 12px; }
+          th { padding: 7px 10px; }
+          td { padding: 7px 10px; }
+          .plans-section { margin-bottom: 18px; }
+          .footer { padding-top: 14px; margin-top: 4px; }
         }
       `}</style>
 
@@ -240,7 +250,7 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
           </div>
 
           {/* Informations */}
-          <div style={{ marginBottom: "32px" }}>
+          <div style={{ marginBottom: "20px" }}>
             <div className="section-title">Informations client</div>
             <div className="info-grid">
               {[
@@ -261,7 +271,7 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
 
           {/* Canaux */}
           {client.canaux && client.canaux.length > 0 && (
-            <div style={{ marginBottom: "32px" }}>
+            <div style={{ marginBottom: "20px" }}>
               <div className="section-title">Canaux actifs</div>
               <div className="canal-chips">
                 {client.canaux.map((c: string) => (
@@ -306,7 +316,7 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
 
           {/* Budget par canal */}
           {canalStats.length > 0 && (
-            <div style={{ marginBottom: "32px" }}>
+            <div style={{ marginBottom: "20px" }}>
               <div className="section-title">Budget par canal</div>
               {canalStats.map(([canal, budget]) => (
                 <div key={canal} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px", fontSize: "11px" }}>
