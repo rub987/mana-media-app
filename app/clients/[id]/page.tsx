@@ -59,9 +59,21 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
   // --- Reporting ---
   const allPlans = (plans || []) as any[];
   const budgetPlansTotal = allPlans.reduce((acc: number, p: any) => acc + (p.budget || 0), 0);
-  const plansEnCours = allPlans.filter((p: any) => p.statut === "En cours");
-  const plansAVenir = allPlans.filter((p: any) => p.statut === "Planifié");
-  const plansTermines = allPlans.filter((p: any) => p.statut === "Terminé");
+
+  // État effectif calculé depuis les dates (pas le statut stocké, sauf Annulé)
+  const nowTs = Date.now();
+  function planEtat(p: any): "en_cours" | "a_venir" | "termine" | "annule" {
+    if (p.statut === "Annulé") return "annule";
+    const debut = new Date(p.date_debut.split("T")[0]).getTime();
+    const fin = new Date(p.date_fin.split("T")[0]).getTime() + 86400000;
+    if (nowTs >= debut && nowTs <= fin) return "en_cours";
+    if (nowTs < debut) return "a_venir";
+    return "termine";
+  }
+
+  const plansEnCours = allPlans.filter((p: any) => planEtat(p) === "en_cours");
+  const plansAVenir = allPlans.filter((p: any) => planEtat(p) === "a_venir");
+  const plansTermines = allPlans.filter((p: any) => planEtat(p) === "termine");
   const budgetEnCours = plansEnCours.reduce((acc: number, p: any) => acc + (p.budget || 0), 0);
 
   const canalColor: Record<string, string> = {
