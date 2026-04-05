@@ -56,6 +56,16 @@ function formatDateShort(d: string) {
   return parseDate(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
+function statutEffectif(p: { statut: string; date_debut: string; date_fin: string }): string {
+  if (p.statut === "Annulé") return "Annulé";
+  const now = Date.now();
+  const debut = parseDate(p.date_debut).getTime();
+  const fin = parseDate(p.date_fin).getTime() + 86400000;
+  if (now >= debut && now <= fin) return "En cours";
+  if (now < debut) return "Planifié";
+  return "Terminé";
+}
+
 function planProgress(dateDebut: string, dateFin: string): number {
   const start = parseDate(dateDebut).getTime();
   const end = parseDate(dateFin).getTime();
@@ -535,8 +545,8 @@ export default async function Portal() {
                     <td style={{ padding: "12px 16px", color: "#666" }}>{formatDate(plan.date_debut)}</td>
                     <td style={{ padding: "12px 16px", color: "#666" }}>{formatDate(plan.date_fin)}</td>
                     <td style={{ padding: "12px 16px" }}>
-                      <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: statutColor[plan.statut]?.bg, color: statutColor[plan.statut]?.color }}>
-                        {plan.statut}
+                      <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: statutColor[statutEffectif(plan)]?.bg, color: statutColor[statutEffectif(plan)]?.color }}>
+                        {statutEffectif(plan)}
                       </span>
                     </td>
                     <td style={{ padding: "12px 16px", color: "#888" }}>{plan.notes || "—"}</td>
