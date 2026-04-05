@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
 
 const offreBadge: Record<string, { bg: string; color: string }> = {
@@ -36,7 +36,13 @@ export default function ClientsGrid({ clients }: { clients: Client[] }) {
   const [search, setSearch] = useState("");
   const [filtreOffre, setFiltreOffre] = useState<string>("Tous");
   const [filtreStatut, setFiltreStatut] = useState<string>("Tous");
+  const [filtreSecteur, setFiltreSecteur] = useState<string>("Tous");
   const [showArchived, setShowArchived] = useState(false);
+
+  const secteurs = useMemo(() => {
+    const s = [...new Set(clients.map(c => c.secteur).filter(Boolean))].sort();
+    return ["Tous", ...s];
+  }, [clients]);
 
   const archivedCount = useMemo(() => clients.filter(c => c.statut === "Archivé").length, [clients]);
 
@@ -47,9 +53,10 @@ export default function ClientsGrid({ clients }: { clients: Client[] }) {
       const matchSearch = !q || c.nom.toLowerCase().includes(q) || (c.secteur || "").toLowerCase().includes(q);
       const matchOffre = filtreOffre === "Tous" || c.offre === filtreOffre;
       const matchStatut = filtreStatut === "Tous" || c.statut === filtreStatut;
-      return matchSearch && matchOffre && matchStatut;
+      const matchSecteur = filtreSecteur === "Tous" || c.secteur === filtreSecteur;
+      return matchSearch && matchOffre && matchStatut && matchSecteur;
     });
-  }, [clients, search, filtreOffre, filtreStatut, showArchived]);
+  }, [clients, search, filtreOffre, filtreStatut, filtreSecteur, showArchived]);
 
   const filterBtn = (active: boolean) => ({
     padding: "5px 12px",
@@ -92,6 +99,17 @@ export default function ClientsGrid({ clients }: { clients: Client[] }) {
           ))}
         </div>
 
+        {secteurs.length > 2 && (
+          <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "11px", color: "#888", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Secteur</span>
+            {secteurs.map((s) => (
+              <button key={s} style={filterBtn(filtreSecteur === s)} onClick={() => setFiltreSecteur(s)}>
+                {s === "Tous" ? "Tous" : s}
+              </button>
+            ))}
+          </div>
+        )}
+
         {archivedCount > 0 && (
           <button
             onClick={() => setShowArchived(!showArchived)}
@@ -100,9 +118,9 @@ export default function ClientsGrid({ clients }: { clients: Client[] }) {
             {showArchived ? "Masquer archivés" : `Archivés (${archivedCount})`}
           </button>
         )}
-        {(search || filtreOffre !== "Tous" || filtreStatut !== "Tous") && (
+        {(search || filtreOffre !== "Tous" || filtreStatut !== "Tous" || filtreSecteur !== "Tous") && (
           <button
-            onClick={() => { setSearch(""); setFiltreOffre("Tous"); setFiltreStatut("Tous"); }}
+            onClick={() => { setSearch(""); setFiltreOffre("Tous"); setFiltreStatut("Tous"); setFiltreSecteur("Tous"); }}
             style={{ padding: "5px 12px", borderRadius: "20px", fontSize: "12px", cursor: "pointer", border: "1px solid #fecaca", background: "#fff", color: "#dc2626", fontWeight: 600 }}
           >
             Effacer ✕
@@ -113,7 +131,7 @@ export default function ClientsGrid({ clients }: { clients: Client[] }) {
       {/* Résultat */}
       <div style={{ marginBottom: "8px", fontSize: "12px", color: "#888" }}>
         {filtered.length} client{filtered.length > 1 ? "s" : ""}
-        {(search || filtreOffre !== "Tous" || filtreStatut !== "Tous") && ` sur ${clients.length}`}
+        {(search || filtreOffre !== "Tous" || filtreStatut !== "Tous" || filtreSecteur !== "Tous") && ` sur ${clients.length}`}
       </div>
 
       {/* Grille */}
