@@ -155,6 +155,16 @@ export default async function Dashboard() {
   }));
   const maxOffre = Math.max(...offres.map((o) => o.count), 1);
 
+  // --- ROI moyen ---
+  const clientsAvecRoi = allClients.filter((c) => c.roi && c.roi.startsWith("×"));
+  const roiMoyen = clientsAvecRoi.length > 0
+    ? clientsAvecRoi.reduce((acc, c) => acc + parseFloat(c.roi.replace("×", "")), 0) / clientsAvecRoi.length
+    : null;
+
+  // --- Budget total campagnes sociales ---
+  const budgetCampagnesTotal = allSocial.reduce((acc: number, c: any) => acc + (c.budget_total || 0), 0);
+  const budgetPlansTotal = allPlans.reduce((acc: number, p: any) => acc + (p.budget || 0), 0);
+
   const kpis = [
     { label: "Clients actifs", value: String(clientsActifs), sub: `${tauxActivite}% du portefeuille`, color: "#7b9fff" },
     { label: "Budget géré / mois", value: fmt(budgetMensuel), sub: "Clients actifs uniquement", color: "#34d399" },
@@ -180,7 +190,7 @@ export default async function Dashboard() {
 
         <div className="page-content">
 
-          {/* KPIs */}
+          {/* KPIs ligne 1 */}
           <div className="grid-4col">
             {kpis.map((kpi) => (
               <div key={kpi.label} style={{ background: "#fff", borderRadius: "10px", padding: "18px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
@@ -190,6 +200,38 @@ export default async function Dashboard() {
                 <div style={{ position: "absolute", top: 0, right: 0, width: "4px", height: "100%", background: kpi.color, borderRadius: "0 10px 10px 0" }} />
               </div>
             ))}
+          </div>
+
+          {/* KPIs ligne 2 — globaux */}
+          <div className="grid-4col" style={{ marginTop: "-8px" }}>
+            <div style={{ background: "#fff", borderRadius: "10px", padding: "16px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
+              <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>ROI moyen estimé</div>
+              <div style={{ fontSize: "26px", fontWeight: 700, color: roiMoyen ? "#16a34a" : "#1a1a2e", margin: "6px 0 4px" }}>
+                {roiMoyen ? `×${roiMoyen.toFixed(1)}` : "—"}
+              </div>
+              <div style={{ fontSize: "12px", color: "#888" }}>
+                {clientsAvecRoi.length > 0 ? `Sur ${clientsAvecRoi.length} client${clientsAvecRoi.length > 1 ? "s" : ""} avec ROI défini` : "Aucun ROI défini"}
+              </div>
+              <div style={{ position: "absolute", top: 0, right: 0, width: "4px", height: "100%", background: "#34d399", borderRadius: "0 10px 10px 0" }} />
+            </div>
+            <div style={{ background: "#fff", borderRadius: "10px", padding: "16px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
+              <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Budget total plans médias</div>
+              <div style={{ fontSize: "26px", fontWeight: 700, color: "#1a1a2e", margin: "6px 0 4px" }}>{fmt(budgetPlansTotal)}</div>
+              <div style={{ fontSize: "12px", color: "#888" }}>{allPlans.length} plan{allPlans.length > 1 ? "s" : ""} au total</div>
+              <div style={{ position: "absolute", top: 0, right: 0, width: "4px", height: "100%", background: "#fbbf24", borderRadius: "0 10px 10px 0" }} />
+            </div>
+            <div style={{ background: "#fff", borderRadius: "10px", padding: "16px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
+              <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Budget total campagnes</div>
+              <div style={{ fontSize: "26px", fontWeight: 700, color: "#1a1a2e", margin: "6px 0 4px" }}>{fmt(budgetCampagnesTotal)}</div>
+              <div style={{ fontSize: "12px", color: "#888" }}>{allSocial.length} campagne{allSocial.length > 1 ? "s" : ""} au total</div>
+              <div style={{ position: "absolute", top: 0, right: 0, width: "4px", height: "100%", background: "#a78bfa", borderRadius: "0 10px 10px 0" }} />
+            </div>
+            <div style={{ background: "#fff", borderRadius: "10px", padding: "16px 20px", border: "1px solid #e5e7eb", position: "relative", overflow: "hidden" }}>
+              <div style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>Budget global total</div>
+              <div style={{ fontSize: "26px", fontWeight: 700, color: "#1a1a2e", margin: "6px 0 4px" }}>{fmt(budgetPlansTotal + budgetCampagnesTotal)}</div>
+              <div style={{ fontSize: "12px", color: "#888" }}>Plans + campagnes cumulés</div>
+              <div style={{ position: "absolute", top: 0, right: 0, width: "4px", height: "100%", background: "#f87171", borderRadius: "0 10px 10px 0" }} />
+            </div>
           </div>
 
           {/* Alertes plans médias */}
