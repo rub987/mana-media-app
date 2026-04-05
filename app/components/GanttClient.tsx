@@ -36,6 +36,22 @@ const CANAUX = ["Radio", "Print", "Affichage", "TV"];
 const STATUTS = ["Planifié", "En cours", "Terminé", "Annulé"];
 const NUM_WEEKS = 10;
 
+const plateformeColor: Record<string, string> = {
+  "Meta": "#1877f2",
+  "Google Ads": "#4285f4",
+  "TikTok Ads": "#000000",
+  "LinkedIn Ads": "#0077b5",
+  "YouTube": "#ff0000",
+};
+
+const plateformeEmoji: Record<string, string> = {
+  "Meta": "📘",
+  "Google Ads": "🔍",
+  "TikTok Ads": "🎵",
+  "LinkedIn Ads": "💼",
+  "YouTube": "▶️",
+};
+
 type PlanWithClient = {
   id: string;
   canal: string;
@@ -44,6 +60,18 @@ type PlanWithClient = {
   date_fin: string;
   statut: string;
   notes: string;
+  client_id: string;
+  clients: { nom: string; offre: string };
+};
+
+type CampagneWithClient = {
+  id: string;
+  plateforme: string;
+  type_campagne: string;
+  date_debut: string;
+  date_fin: string | null;
+  statut: string;
+  budget_total: number | null;
   client_id: string;
   clients: { nom: string; offre: string };
 };
@@ -69,7 +97,7 @@ function isPlanActiveInWeek(plan: PlanWithClient, weekStart: Date, weekEnd: Date
   return start <= weekEnd && end >= weekStart;
 }
 
-export default function GanttClient({ plans }: { plans: PlanWithClient[] }) {
+export default function GanttClient({ plans, campagnes = [] }: { plans: PlanWithClient[]; campagnes?: CampagneWithClient[] }) {
   const [filtreCanaux, setFiltreCanaux] = useState<string[]>([]);
   const [filtreStatuts, setFiltreStatuts] = useState<string[]>([]);
   const [weekOffset, setWeekOffset] = useState(0);
@@ -118,12 +146,18 @@ export default function GanttClient({ plans }: { plans: PlanWithClient[] }) {
   })();
 
   // Group by client
-  const byClient = new Map<string, { id: string; nom: string; offre: string; plans: PlanWithClient[] }>();
+  const byClient = new Map<string, { id: string; nom: string; offre: string; plans: PlanWithClient[]; campagnes: CampagneWithClient[] }>();
   for (const plan of filteredPlans) {
     if (!byClient.has(plan.client_id)) {
-      byClient.set(plan.client_id, { id: plan.client_id, nom: plan.clients.nom, offre: plan.clients.offre, plans: [] });
+      byClient.set(plan.client_id, { id: plan.client_id, nom: plan.clients.nom, offre: plan.clients.offre, plans: [], campagnes: [] });
     }
     byClient.get(plan.client_id)!.plans.push(plan);
+  }
+  for (const c of campagnes) {
+    if (!byClient.has(c.client_id)) {
+      byClient.set(c.client_id, { id: c.client_id, nom: c.clients.nom, offre: c.clients.offre, plans: [], campagnes: [] });
+    }
+    byClient.get(c.client_id)!.campagnes.push(c);
   }
   const clients = Array.from(byClient.values());
 
@@ -243,7 +277,7 @@ export default function GanttClient({ plans }: { plans: PlanWithClient[] }) {
           </div>
         </div>
 
-        {filteredPlans.length === 0 ? (
+        {clients.length === 0 ? (
           <div style={{ padding: "48px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>
             {hasFiltres ? "Aucun plan ne correspond aux filtres sélectionnés." : "Aucun plan média. Créez des plans depuis la fiche client."}
           </div>
@@ -311,6 +345,38 @@ export default function GanttClient({ plans }: { plans: PlanWithClient[] }) {
                         </td>
                       </tr>
                     ))}
+                    {client.campagnes.map((c) => {
+                      const color = plateformeColor[c.plateforme] || "#888";
+                      return (
+                        <tr key={c.id} style={{ borderBottom: "1px solid #f5f5f5", background: "#fdfcff" }}>
+                          <td style={{ padding: "8px 16px 8px 28px", fontSize: "12px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <span style={{ color }}>{plateformeEmoji[c.plateforme] || "•"} {c.plateforme}</span>
+                              <span style={{ fontSize: "10px", color: "#aaa" }}>{c.type_campagne}</span>
+                            </div>
+                          </td>
+                          {weeks.map((w, i) => {
+                            const active = c.date_fin
+                              ? isPlanActiveInWeek({ date_debut: c.date_debut, date_fin: c.date_fin } as any, w.start, w.end)
+                              : new Date(c.date_debut) <= w.end;
+                            const isCurrentWeek = w.start <= new Date() && new Date() <= w.end;
+                            return (
+                              <td key={i} style={{ padding: "6px 4px", textAlign: "center", background: isCurrentWeek ? "#fafcff" : "transparent" }}>
+                                {active && (
+                                  <div
+                                    style={{ height: "14px", borderRadius: "3px", background: color, opacity: c.statut === "Terminé" || c.statut === "Annulé" ? 0.35 : 0.7, borderTop: `2px solid ${color}` }}
+                                    title={`${c.plateforme} · ${c.statut}`}
+                                  />
+                                )}
+                              </td>
+                            );
+                          })}
+                          <td style={{ padding: "8px 16px", textAlign: "right", color: "#888", fontSize: "11px" }}>
+                            {c.budget_total ? `${Math.round(c.budget_total / 1000)}k F` : "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </React.Fragment>
                 ))}
               </tbody>
@@ -323,7 +389,9 @@ export default function GanttClient({ plans }: { plans: PlanWithClient[] }) {
       {clients.length > 0 && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "16px", marginTop: "16px" }}>
           {clients.map((client) => {
-            const total = client.plans.reduce((acc, p) => acc + (p.budget || 0), 0);
+            const totalPlans = client.plans.reduce((acc, p) => acc + (p.budget || 0), 0);
+            const totalCampagnes = client.campagnes.reduce((acc, c) => acc + (c.budget_total || 0), 0);
+            const total = totalPlans + totalCampagnes;
             return (
               <Link key={client.id} href={`/clients/${client.id}`} style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "16px", textDecoration: "none", display: "block", transition: "border-color 0.15s" }}
                 onMouseEnter={e => (e.currentTarget.style.borderColor = "#7b9fff")}
@@ -339,7 +407,9 @@ export default function GanttClient({ plans }: { plans: PlanWithClient[] }) {
                   {Math.round(total / 1000)}k F
                 </div>
                 <div style={{ fontSize: "11px", color: "#888" }}>
-                  {client.plans.length} plan{client.plans.length > 1 ? "s" : ""} · {[...new Set(client.plans.map(p => p.canal))].join(", ")}
+                  {client.plans.length > 0 && <span>{client.plans.length} plan{client.plans.length > 1 ? "s" : ""}</span>}
+                  {client.plans.length > 0 && client.campagnes.length > 0 && <span> · </span>}
+                  {client.campagnes.length > 0 && <span>{client.campagnes.length} campagne{client.campagnes.length > 1 ? "s" : ""}</span>}
                 </div>
               </Link>
             );
