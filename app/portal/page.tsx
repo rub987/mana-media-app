@@ -18,6 +18,23 @@ const statutColor: Record<string, { bg: string; color: string }> = {
   "Annulé": { bg: "#fee2e2", color: "#dc2626" },
 };
 
+const plateformeColor: Record<string, string> = {
+  "Meta": "#1877f2",
+  "Google Ads": "#4285f4",
+  "TikTok Ads": "#000000",
+  "LinkedIn Ads": "#0077b5",
+  "YouTube": "#ff0000",
+};
+
+const socialStatutColor: Record<string, { bg: string; color: string }> = {
+  "En préparation": { bg: "#f3f4f6", color: "#6b7280" },
+  "En attente validation": { bg: "#fff7ed", color: "#c2410c" },
+  "En ligne": { bg: "#dcfce7", color: "#16a34a" },
+  "Pausé": { bg: "#fef9c3", color: "#92400e" },
+  "Terminé": { bg: "#f3f4f6", color: "#374151" },
+  "Annulé": { bg: "#fee2e2", color: "#dc2626" },
+};
+
 function fmt(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M F CFP`;
   if (n >= 1_000) return `${Math.round(n / 1000)}k F CFP`;
@@ -69,18 +86,22 @@ export default async function Portal() {
   const clientId = user.user_metadata?.client_id;
   if (!clientId) redirect("/dashboard");
 
-  const [{ data: client }, { data: plans }] = await Promise.all([
+  const [{ data: client }, { data: plans }, { data: campagnes }] = await Promise.all([
     supabase.from("clients").select("*").eq("id", clientId).single(),
     supabase.from("plans_media").select("*").eq("client_id", clientId).order("date_debut", { ascending: true }),
+    supabase.from("campagnes_sociales").select("*").eq("client_id", clientId).order("date_debut", { ascending: false }),
   ]);
 
   if (!client) redirect("/login");
 
   const allPlans = plans || [];
+  const allCampagnes = campagnes || [];
   const plansEnCours = allPlans.filter(p => p.statut === "En cours");
   const plansTermines = allPlans.filter(p => p.statut === "Terminé");
   const plansPlanifies = allPlans.filter(p => p.statut === "Planifié");
   const budgetPlans = allPlans.reduce((acc, p) => acc + (p.budget || 0), 0);
+  const campagnesActives = allCampagnes.filter(c => c.statut === "En ligne" || c.statut === "En préparation" || c.statut === "En attente validation");
+  const budgetProgression = client?.budget_mensuel > 0 ? Math.min(Math.round((budgetPlans / client.budget_mensuel) * 100), 100) : 0;
 
   // Budget par canal
   const budgetParCanal: Record<string, number> = {};
@@ -113,6 +134,9 @@ export default async function Portal() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ fontSize: "12px", color: "#888" }}>{client.nom}</span>
+          <a href={`/clients/${clientId}/rapport`} target="_blank" style={{ padding: "6px 14px", background: "#7b9fff", borderRadius: "6px", color: "#fff", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
+            Télécharger rapport PDF
+          </a>
           <form action="/auth/signout" method="post">
             <button style={{ padding: "6px 14px", background: "transparent", border: "1px solid #2a2a4e", borderRadius: "6px", color: "#666", fontSize: "12px", cursor: "pointer" }}>
               Déconnexion
@@ -342,17 +366,65 @@ export default async function Portal() {
         {/* Budget utilisé */}
         <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", padding: "20px", marginBottom: "16px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <span style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Budget utilisé ce mois</span>
-            <span style={{ fontSize: "20px", fontWeight: 800, color: "#1a1a2e" }}>{client.progression || 0}%</span>
+            <span style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>Budget engagé (plans médias)</span>
+            <span style={{ fontSize: "20px", fontWeight: 800, color: "#1a1a2e" }}>{budgetProgression}%</span>
           </div>
           <div style={{ background: "#f0f0f0", borderRadius: "6px", height: "10px", overflow: "hidden" }}>
-            <div style={{ width: `${client.progression || 0}%`, height: "100%", borderRadius: "6px", background: "linear-gradient(90deg, #7b9fff, #a78bfa)" }} />
+            <div style={{ width: `${budgetProgression}%`, height: "100%", borderRadius: "6px", background: "linear-gradient(90deg, #7b9fff, #a78bfa)" }} />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#888", marginTop: "6px" }}>
-            <span>0 F</span>
+            <span>{fmt(budgetPlans)} engagé</span>
             <span>{fmt(client.budget_mensuel || 0)} / mois</span>
           </div>
         </div>
+
+        {/* Campagnes sociales & digitales */}
+        {allCampagnes.length > 0 && (
+          <div style={{ background: "#fff", borderRadius: "10px", border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: "16px" }}>
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1a1a2e" }}>
+                Campagnes sociales & digitales <span style={{ fontSize: "12px", color: "#888", fontWeight: 400 }}>({allCampagnes.length})</span>
+              </h3>
+              {campagnesActives.length > 0 && (
+                <span style={{ fontSize: "12px", color: "#16a34a", fontWeight: 600 }}>{campagnesActives.length} active{campagnesActives.length > 1 ? "s" : ""}</span>
+              )}
+            </div>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+              <thead>
+                <tr style={{ background: "#fafafa" }}>
+                  {["Plateforme", "Type", "Budget", "Période", "Statut"].map((h) => (
+                    <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", color: "#888", borderBottom: "1px solid #f0f0f0" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {allCampagnes.map((c) => {
+                  const sc = socialStatutColor[c.statut] || { bg: "#f3f4f6", color: "#6b7280" };
+                  return (
+                    <tr key={c.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
+                      <td style={{ padding: "11px 16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: plateformeColor[c.plateforme] || "#aaa", flexShrink: 0, display: "inline-block" }} />
+                          <span style={{ fontWeight: 500 }}>{c.plateforme}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: "11px 16px", color: "#555" }}>{c.type_campagne || "—"}</td>
+                      <td style={{ padding: "11px 16px", fontWeight: 600 }}>{c.budget_total ? fmt(c.budget_total) : "—"}</td>
+                      <td style={{ padding: "11px 16px", color: "#888", fontSize: "12px" }}>
+                        {formatDateShort(c.date_debut)}{c.date_fin ? ` → ${formatDateShort(c.date_fin)}` : ""}
+                      </td>
+                      <td style={{ padding: "11px 16px" }}>
+                        <span style={{ display: "inline-block", padding: "3px 9px", borderRadius: "12px", fontSize: "11px", fontWeight: 600, background: sc.bg, color: sc.color }}>
+                          {c.statut}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Tous les plans */}
         {allPlans.length > 0 && (
