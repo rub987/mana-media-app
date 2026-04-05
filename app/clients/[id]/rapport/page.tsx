@@ -179,20 +179,22 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
 
         @media print {
           .actions { display: none !important; }
-          body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .rapport { padding: 24px 32px; }
+          body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 11px; }
+          .rapport { padding: 20px 28px; }
           .page { max-width: 100%; box-shadow: none; }
-          .header { padding-bottom: 14px; margin-bottom: 18px; }
-          .kpis { margin-bottom: 18px; gap: 10px; }
-          .kpi { padding: 10px 12px; }
-          .kpi-value { font-size: 16px; }
-          .section-title { margin-bottom: 8px; padding-bottom: 4px; }
-          .info-row { padding: 7px 12px; }
-          th { padding: 6px 10px; }
-          td { padding: 6px 10px; }
-          table { page-break-inside: avoid; }
-          .plans-section { margin-bottom: 18px; }
-          .footer { padding-top: 14px; margin-top: 4px; }
+          .header { padding-bottom: 12px; margin-bottom: 14px; }
+          .client-name { font-size: 22px !important; }
+          .kpis { margin-bottom: 14px; gap: 8px; }
+          .kpi { padding: 8px 10px; }
+          .kpi-value { font-size: 15px; }
+          .kpi-sub { font-size: 9px; }
+          .section-title { margin-bottom: 6px; padding-bottom: 3px; font-size: 10px; }
+          .info-row { padding: 5px 10px; font-size: 11px; }
+          th { padding: 5px 8px; font-size: 9px; }
+          td { padding: 5px 8px; font-size: 11px; }
+          .canal-chip { font-size: 10px; }
+          .plans-section { margin-bottom: 14px; }
+          .footer { padding-top: 10px; margin-top: 2px; font-size: 11px; }
         }
       `}</style>
 
@@ -337,7 +339,7 @@ export default async function Rapport({ params }: { params: Promise<{ id: string
 
           {/* Campagnes sociales & digitales */}
           {allCampagnes.length > 0 && (
-            <div style={{ marginBottom: "24px", pageBreakInside: "avoid" }}>
+            <div style={{ marginBottom: "16px", pageBreakInside: "avoid" }}>
               <div className="section-title">Campagnes sociales & digitales ({allCampagnes.length})</div>
               <table>
                 <thead>
